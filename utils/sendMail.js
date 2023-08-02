@@ -1,6 +1,16 @@
 const nodemailer = require("nodemailer");
+const hbs = require("nodemailer-express-handlebars");
+const path = require("path");
 
-exports.sendMail = async (options) => {
+exports.sendMail = async (
+  subject,
+  send_to,
+  sent_from,
+  reply_to,
+  template,
+  name,
+  link
+) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMPT_HOST.trim(),
     port: process.env.SMPT_PORT,
@@ -9,14 +19,40 @@ exports.sendMail = async (options) => {
       user: process.env.SMPT_MAIL,
       pass: process.env.SMPT_PASSWORD,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
 
-  const mailOptions = {
-    from: process.env.SMPT_MAIL,
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
+  const handlebarOptions = {
+    viewEngine: {
+      extName: ".handlebars",
+      partialsDir: path.resolve("./views"),
+      defaultLayout: false,
+    },
+    viewPath: path.resolve("./views"),
+    extName: ".handlebars",
   };
 
-  await transporter.sendMail(mailOptions);
+  transporter.use("compile", hbs(handlebarOptions));
+
+  const mailOptions = {
+    from: sent_from,
+    to: send_to,
+    replyTo: reply_to,
+    subject,
+    template,
+    context: {
+      name,
+      link,
+    },
+  };
+
+  transporter.sendMail(mailOptions, function (err, info) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(info);
+    }
+  });
 };

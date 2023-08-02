@@ -11,6 +11,7 @@ const {
   deleteAddress,
   changePassword,
   getAllOrdersOfUser,
+  forgotPassword,
 } = require("../controllers/user.controller");
 const upload = require("../upload");
 const catchAsyncError = require("../middleware/catchAsyncError");
@@ -24,6 +25,9 @@ router.post("/activation", catchAsyncError(activation));
 
 // login user
 router.post("/login", catchAsyncError(loginUser));
+
+// forgot user password
+router.post("/forgotpassword", catchAsyncError(forgotPassword));
 
 // retrive user information
 router.get("/getuser", isVerify, catchAsyncError(getUser));
