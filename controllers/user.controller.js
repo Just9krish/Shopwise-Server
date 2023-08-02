@@ -1,14 +1,13 @@
 const path = require("path");
+const crypto = require("crypto");
 const fs = require("fs");
 const User = require("../models/user.model");
 const Order = require("../models/order.model");
+const Token = require("../models/token.model");
 const ErrorHandler = require("../utils/errorHandler");
-const {
-  createActivationToken,
-  decodeActivationToken,
-} = require("../helper/helper");
 const { sendMail } = require("../utils/sendMail");
 const { sendToken } = require("../utils/jwtToken");
+const { hashToken } = require("../utils/hashToken");
 
 // register user
 exports.createUser = async (req, res, next) => {
@@ -36,29 +35,56 @@ exports.createUser = async (req, res, next) => {
     const filename = req.file.filename;
     const fileUrl = path.join(filename);
 
-    const user = {
+    const user = await User.create({
       name: name,
       email: email,
       password: password,
       avatar: fileUrl,
-    };
+    });
 
-    const expirationTime = new Date(Date.now() + 600000);
+    console.log(user);
 
-    const activationToken = createActivationToken(user, expirationTime);
+    // Delete Token if it exists in DB
+    let token = await Token.findOne({ userId: user._id });
+    if (token) {
+      await token.deleteOne();
+    }
 
-    const activationUrl = `http://localhost:5173/activation/${activationToken}`;
+    //   Create Verification Token and Save
+    const verificationToken = crypto.randomBytes(32).toString("hex") + user._id;
+    console.log(verificationToken);
+
+    const hashedToken = hashToken(verificationToken);
+    await new Token({
+      userId: user._id,
+      vToken: hashedToken,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
+    }).save();
+
+    const verificationUrl = `${process.env.CLIENT_DOMAIN}/user/verify/${verificationToken}`;
+
+    const subject = "Verify Your Account - Shopwise";
+    const send_to = user.email;
+    const sent_from = process.env.SMPT_MAIL;
+    const reply_to = "noreply@shopwise.com";
+    const template = "verifyEmail";
+    const link = verificationUrl;
 
     try {
-      await sendMail({
-        email: user.email,
-        subject: "Activate your account",
-        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
-      });
+      await sendMail(
+        subject,
+        send_to,
+        sent_from,
+        reply_to,
+        template,
+        user.name,
+        link
+      );
 
       res.status(200).json({
         success: true,
-        message: `Please check your email: ${user.email} to activate your account.`,
+        message: `Verification Email Sent`,
       });
     } catch (error) {
       console.log(error);
@@ -75,28 +101,28 @@ exports.activation = async (req, res, next) => {
   try {
     const { activation_token } = req.body;
 
-    const decodedUser = decodeActivationToken(activation_token);
+    const hashedToken = hashToken(activation_token);
 
-    if (!decodedUser) {
-      return next(new ErrorHandler("Invalid user activation token", 400));
-    }
-
-    const { name, email, password, avatar } = decodedUser;
-
-    const user = await User.findOne({ email });
-
-    if (user) {
-      return next(new ErrorHandler("User already exist", 400));
-    }
-
-    const newUser = await User.create({
-      name,
-      email,
-      password,
-      avatar,
+    const userToken = await Token.findOne({
+      vToken: hashedToken,
+      expiresAt: { $gt: Date.now() },
     });
 
-    sendToken(newUser, 201, res);
+    if (!userToken) {
+      return next(new ErrorHandler("Invalid or Expired Token", 404));
+    }
+
+    const user = await User.findById(userToken.userId);
+
+    if (user.isEmailVerified) {
+      res.status(400);
+      throw new Error("User is already verified");
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    sendToken(user, 201, res);
   } catch (error) {
     console.log(error);
     return next(new ErrorHandler("Failed to create user", 500));
@@ -118,6 +144,10 @@ exports.loginUser = async (req, res, next) => {
       return next(new ErrorHandler("User doesn't exist", 404));
     }
 
+    if (!user.isEmailVerified) {
+      return next(new ErrorHandler("Email is not verified", 400));
+    }
+
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
@@ -126,16 +156,8 @@ exports.loginUser = async (req, res, next) => {
 
     sendToken(user, 200, res);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      // Mongoose validation error
-      const errorMessage = Object.values(error.errors)
-        .map((err) => err.message)
-        .join(", ");
-      return next(new ErrorHandler(errorMessage, 400));
-    } else {
-      console.error(error);
-      return next(new ErrorHandler("Failed to login user", 500));
-    }
+    console.error(error);
+    return next(new ErrorHandler("Failed to login user", 500));
   }
 };
 
@@ -152,10 +174,76 @@ exports.getUser = async (req, res, next) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.log(error);
-    next(new ErrorHandler(error.message, 500));
+    return next(new ErrorHandler(error.message, 500));
   }
 };
 
+// forgot password
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404);
+      return next(new ErrorHandler("No user with this email", 400));
+    }
+
+    // Delete Token if it exists in DB
+    let token = await Token.findOne({ userId: user._id });
+    if (token) {
+      await token.deleteOne();
+    }
+
+    //   Create Verification Token and Save
+    const resetToken = crypto.randomBytes(32).toString("hex") + user._id;
+    console.log(resetToken);
+
+    // hash token
+    const hashedToken = hashToken(resetToken);
+
+    await new Token({
+      userId: user._id,
+      rToken: hashedToken,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
+    }).save();
+
+    // Construct Reset URL
+    const resetUrl = `${process.env.CLIENT_DOMAIN}/resetPassword/${resetToken}`;
+
+    // Send Email
+    const subject = "Password Reset Request - Shopwise";
+    const send_to = user.email;
+    const sent_from = process.env.SMPT_MAIL;
+    const reply_to = "noreply@shopwise.com";
+    const template = "forgotPassword";
+    const name = user.name;
+    const link = resetUrl;
+
+    try {
+      await sendMail(
+        subject,
+        send_to,
+        sent_from,
+        reply_to,
+        template,
+        name,
+        link
+      );
+      res.status(200).json({ message: "Password Reset Email Sent" });
+    } catch (error) {
+      console.log(error);
+      return next(new ErrorHandler("Email not sent, please try again", 500));
+    }
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+};
+
+// update user profile
 exports.updateUserProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -188,6 +276,7 @@ exports.updateUserProfile = async (req, res, next) => {
   }
 };
 
+// update user profile picture
 exports.updateUserProfilePicture = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -207,6 +296,7 @@ exports.updateUserProfilePicture = async (req, res, next) => {
   }
 };
 
+// add user address
 exports.addUserAdress = async (req, res, next) => {
   try {
     const {
