@@ -9,40 +9,32 @@ const { sendMail } = require("../utils/sendMail");
 const { sendToken } = require("../utils/jwtToken");
 const { hashToken } = require("../utils/hashToken");
 
+const CLIENT_DOMAIN =
+  process.env.NODE_ENV === "PRODUCTION"
+    ? process.env.CLIENT_DOMAIN_PRO
+    : process.env.CLIENT_DOMAIN_DEV;
+
 // register user
 exports.createUser = async (req, res, next) => {
   try {
+    console.log(req.body);
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return next(new ErrorHandler("Please enter all fields", 400));
+    }
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      // Delete uploaded file
-      const filename = req.file.filename;
-      const filepath = `uploads/${filename}`;
-
-      fs.unlink(filepath, (error) => {
-        if (error) {
-          console.log(error);
-          return next(new ErrorHandler(error.message, 500));
-        }
-      });
-
       return next(new ErrorHandler("User already exists", 400));
     }
-
-    // Save uploaded file
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
 
     const user = await User.create({
       name: name,
       email: email,
       password: password,
-      avatar: fileUrl,
     });
-
-    console.log(user);
 
     // Delete Token if it exists in DB
     let token = await Token.findOne({ userId: user._id });
@@ -52,7 +44,6 @@ exports.createUser = async (req, res, next) => {
 
     //   Create Verification Token and Save
     const verificationToken = crypto.randomBytes(32).toString("hex") + user._id;
-    console.log(verificationToken);
 
     const hashedToken = hashToken(verificationToken);
     await new Token({
@@ -62,7 +53,7 @@ exports.createUser = async (req, res, next) => {
       expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
     }).save();
 
-    const verificationUrl = `${process.env.CLIENT_DOMAIN}/user/verify/${verificationToken}`;
+    const verificationUrl = `${CLIENT_DOMAIN}/user/verify/${verificationToken}`;
 
     const subject = "Verify Your Account - Shopwise";
     const send_to = user.email;
@@ -70,6 +61,7 @@ exports.createUser = async (req, res, next) => {
     const reply_to = "noreply@shopwise.com";
     const template = "verifyEmail";
     const link = verificationUrl;
+    const logoUrl = process.env.SHOP_LOGO;
 
     try {
       await sendMail(
@@ -79,7 +71,8 @@ exports.createUser = async (req, res, next) => {
         reply_to,
         template,
         user.name,
-        link
+        link,
+        logoUrl
       );
 
       res.status(200).json({
@@ -198,7 +191,6 @@ exports.forgotPassword = async (req, res, next) => {
 
     //   Create Verification Token and Save
     const resetToken = crypto.randomBytes(32).toString("hex") + user._id;
-    console.log(resetToken);
 
     // hash token
     const hashedToken = hashToken(resetToken);
@@ -211,7 +203,7 @@ exports.forgotPassword = async (req, res, next) => {
     }).save();
 
     // Construct Reset URL
-    const resetUrl = `${process.env.CLIENT_DOMAIN}/resetPassword/${resetToken}`;
+    const resetUrl = `${CLIENT_DOMAIN}/resetPassword/${resetToken}`;
 
     // Send Email
     const subject = "Password Reset Request - Shopwise";
@@ -221,6 +213,7 @@ exports.forgotPassword = async (req, res, next) => {
     const template = "forgotPassword";
     const name = user.name;
     const link = resetUrl;
+    const logoUrl = process.env.SHOP_LOGO;
 
     try {
       await sendMail(
@@ -230,7 +223,8 @@ exports.forgotPassword = async (req, res, next) => {
         reply_to,
         template,
         name,
-        link
+        link,
+        logoUrl
       );
       res.status(200).json({ message: "Password Reset Email Sent" });
     } catch (error) {
@@ -243,6 +237,7 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
+// reset user password
 exports.resetPassword = async (req, res, next) => {
   try {
     const { resetToken } = req.params;

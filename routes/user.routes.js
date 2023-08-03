@@ -19,7 +19,7 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const { isVerify } = require("../middleware/auth");
 
 // register user
-router.post("/signup", upload.single("file"), createUser);
+router.post("/signup", createUser);
 
 // activate user
 router.post("/activation", catchAsyncError(activation));
