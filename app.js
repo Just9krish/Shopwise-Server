@@ -12,11 +12,15 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   });
 }
 
+// Define allowed origins based on the environment
+const allowedOrigins =
+  process.env.NODE_ENV === "PRODUCTION"
+    ? [process.env.CLIENT_DOMAIN_PRO]
+    : [process.env.CLIENT_DOMAIN_DEV];
+
 app.use(express.json());
 app.use(cookieParser());
-console.log(process.env.CLIENT_DOMAIN_PRO);
 // Allow requests from the specified frontend domain
-const allowedOrigins = [process.env.CLIENT_DOMAIN_PRO];
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -26,6 +30,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
+    credentials: true,
   })
 );
 app.use(logger("dev"));
