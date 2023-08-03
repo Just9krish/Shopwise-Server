@@ -3,7 +3,7 @@ const Event = require("../models/event.model");
 const Cupon = require("../models/cuponcode.model");
 const Product = require("../models/product.model");
 const Order = require("../models/order.model");
-const path = require("path");
+const crypto = require("crypto");
 const fs = require("fs");
 const { sendMail } = require("../utils/sendMail");
 const ErrorHandler = require("../utils/errorHandler");
@@ -12,6 +12,13 @@ const {
   decodeActivationToken,
 } = require("../helper/helper");
 const { sendShopToken } = require("../utils/shopToken");
+const ShopToken = require("../models/shoptoken.model");
+const { hashToken } = require("../utils/hashToken");
+
+const CLIENT_DOMAIN =
+  process.env.NODE_ENV === "PRODUCTION"
+    ? process.env.CLIENT_DOMAIN_PRO
+    : process.env.CLIENT_DOMAIN_DEV;
 
 // shop creation
 exports.createShop = async (req, res, next) => {
@@ -21,50 +28,65 @@ exports.createShop = async (req, res, next) => {
     const alreadyShop = await Shop.findOne({ email: email });
 
     if (alreadyShop) {
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (error) => {
-        if (error) {
-          console.log(error);
-          return res.status(500).json({ message: "Error for deleting file" });
-        }
-      });
-      return next(new ErrorHandler("This email is already register", 400));
+      return next(new ErrorHandler("Shop already exist", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
-
-    const shop = {
+    const shop = await Shop.create({
       name: name,
       email: email,
       password: password,
-      avatar: fileUrl,
       address: address,
       phoneNumber: phoneNumber,
       zipcode: zipcode,
-    };
+    });
 
-    const expirationTime = new Date(Date.now() + 600000);
+    const shopToken = await ShopToken.findOne({ shopId: shop._id });
 
-    const activationToken = createActivationToken(shop, expirationTime);
+    if (shopToken) {
+      await shopToken.deleteOne();
+    }
 
-    const activationUrl = `http://localhost:5173/seller/activation/${activationToken}`;
+    //   Create Verification Token and Save
+    const verificationToken = crypto.randomBytes(32).toString("hex") + shop._id;
+
+    const hashedToken = hashToken(verificationToken);
+
+    await new ShopToken({
+      shopId: shop._id,
+      vToken: hashedToken,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
+    }).save();
+
+    const verificationUrl = `${CLIENT_DOMAIN}/seller/verify/${verificationToken}`;
+
+    const subject = "Verify Your Account - Shopwise";
+    const send_to = shop.email;
+    const sent_from = process.env.SMPT_MAIL;
+    const reply_to = "noreply@shopwise.com";
+    const template = "verifyEmail";
+    const link = verificationUrl;
+    const logoUrl = process.env.SHOP_LOGO;
 
     try {
-      await sendMail({
-        email: shop.email,
-        subject: "Activate your shop account",
-        message: `Hello ${shop.name}, please click on the link to activate your shop: ${activationUrl}`,
-      });
+      await sendMail(
+        subject,
+        send_to,
+        sent_from,
+        reply_to,
+        template,
+        shop.name,
+        link,
+        logoUrl
+      );
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: `Please check your email: ${shop.email} to activate your shop.`,
+        message: `Verification Email Sent`,
       });
     } catch (error) {
       console.log(error);
-      return next(new ErrorHandler("Failed to send activation email", 500));
+      return next(new ErrorHandler("Failed to send verification email", 500));
     }
   } catch (error) {
     console.log(error);
@@ -77,30 +99,25 @@ exports.shopActivation = async (req, res, next) => {
   try {
     const { activation_token } = req.body;
 
-    const decodedShop = decodeActivationToken(activation_token, res);
+    const hashedToken = hashToken(activation_token);
 
-    if (!decodedShop) {
-      return next(new ErrorHandler("Invalid shop activation token", 400));
-    }
-
-    const { name, email, password, avatar, zipcode, address, phoneNumber } =
-      decodedShop;
-
-    const alreadyShop = await Shop.findOne({ email });
-
-    if (alreadyShop) {
-      return next(new ErrorHandler("Shop already exist", 400));
-    }
-
-    const newShop = await Shop.create({
-      name,
-      email,
-      password,
-      avatar,
-      zipcode,
-      address,
-      phoneNumber,
+    const shopToken = await ShopToken.findOne({
+      vToken: hashedToken,
+      expiresAt: { $gt: Date.now() },
     });
+
+    if (!shopToken) {
+      return next(new ErrorHandler("Invalid or Expired Token", 404));
+    }
+
+    const shop = await Shop.findById(shopToken.shopId);
+
+    if (shop.isEmailVerified) {
+      return next(new ErrorHandler("Shop is already verified", 400));
+    }
+
+    shop.isEmailVerified = true;
+    await shop.save();
 
     sendShopToken(newShop, 201, res);
   } catch (error) {
@@ -122,6 +139,10 @@ exports.shopLogin = async (req, res, next) => {
 
     if (!shop) {
       return next(new ErrorHandler("Shop doesn't exist", 404));
+    }
+
+    if (!shop.isEmailVerified) {
+      return next(new ErrorHandler("Email is not verified", 400));
     }
 
     const isPasswordValid = await shop.comparePassword(password);

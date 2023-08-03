@@ -6,11 +6,30 @@ const logger = require("morgan");
 const ErrorHandler = require("./middleware/error");
 const app = express();
 
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "./config/.env",
+  });
+}
+
+// Define allowed origins based on the environment
+const allowedOrigins =
+  process.env.NODE_ENV === "PRODUCTION"
+    ? [process.env.CLIENT_DOMAIN_PRO]
+    : [process.env.CLIENT_DOMAIN_DEV];
+
 app.use(express.json());
 app.use(cookieParser());
+// Allow requests from the specified frontend domain
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );

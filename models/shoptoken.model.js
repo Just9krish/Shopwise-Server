@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const tokenSchema = mongoose.Schema({
-  userId: {
+const shopTokenSchema = mongoose.Schema({
+  shopId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "user",
+    ref: "Seller", // Replace "Seller" with the actual name of your seller model
   },
   vToken: {
     type: String,
@@ -28,5 +28,4 @@ const tokenSchema = mongoose.Schema({
   },
 });
 
-const Token = mongoose.model("Token", tokenSchema);
-module.exports = Token;
+module.exports = mongoose.model("ShopToken", shopTokenSchema);
