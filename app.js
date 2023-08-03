@@ -14,11 +14,18 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 
 app.use(express.json());
 app.use(cookieParser());
-console.log(process.env.CLIENT_DOMAIN);
+console.log(process.env.CLIENT_DOMAIN_PRO);
+// Allow requests from the specified frontend domain
+const allowedOrigins = [process.env.CLIENT_DOMAIN_PRO];
 app.use(
   cors({
-    origin: process.env.CLIENT_DOMAIN,
-    credentials: true,
+    origin: (origin, callback) => {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   })
 );
 app.use(logger("dev"));
