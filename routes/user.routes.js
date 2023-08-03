@@ -12,6 +12,7 @@ const {
   changePassword,
   getAllOrdersOfUser,
   forgotPassword,
+  resetPassword,
 } = require("../controllers/user.controller");
 const upload = require("../upload");
 const catchAsyncError = require("../middleware/catchAsyncError");
@@ -28,6 +29,12 @@ router.post("/login", catchAsyncError(loginUser));
 
 // forgot user password
 router.post("/forgotpassword", catchAsyncError(forgotPassword));
+
+// reset user password
+router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
+
+// logout user
+router.get("/logout", catchAsyncError(logOutUser));
 
 // retrive user information
 router.get("/getuser", isVerify, catchAsyncError(getUser));
@@ -54,8 +61,5 @@ router.post("/password-change", isVerify, catchAsyncError(changePassword));
 
 // get all user order
 router.get("/:userId/orders", isVerify, catchAsyncError(getAllOrdersOfUser));
-
-// logout user
-router.get("/logout", catchAsyncError(logOutUser));
 
 module.exports = router;
