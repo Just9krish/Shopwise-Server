@@ -243,6 +243,35 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { resetToken } = req.params;
+    const { password } = req.body;
+
+    const hashedToken = hashToken(resetToken);
+
+    const userToken = await Token.findOne({
+      rToken: hashedToken,
+      expiresAt: { $gt: Date.now() },
+    });
+
+    if (!userToken) {
+      return next(new ErrorHandler("Invalid or Expired Token", 404));
+    }
+
+    const user = User.findById(userToken.userId);
+    user.password = password;
+
+    await user.save();
+    res
+      .status(200)
+      .json({ message: "Password Reset Successful, please login" });
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+};
+
 // update user profile
 exports.updateUserProfile = async (req, res, next) => {
   try {
