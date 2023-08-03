@@ -9,7 +9,8 @@ exports.sendMail = async (
   reply_to,
   template,
   name,
-  link
+  link,
+  logoUrl
 ) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMPT_HOST.trim(),
@@ -45,6 +46,7 @@ exports.sendMail = async (
     context: {
       name,
       link,
+      logoUrl,
     },
   };
 

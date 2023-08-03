@@ -85,7 +85,7 @@ const userSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      requried: true,
+      default: "https://i.ibb.co/kK2JV13/Png-Item-1503945.png",
     },
 
     isEmailVerified: {
