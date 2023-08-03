@@ -36,12 +36,17 @@ const shopSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      requried: true,
+      default: "https://i.ibb.co/kK2JV13/Png-Item-1503945.png",
     },
 
     zipcode: {
       type: Number,
       require: true,
+    },
+
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
 
     description: String,

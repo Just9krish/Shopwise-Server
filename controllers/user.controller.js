@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const User = require("../models/user.model");
 const Order = require("../models/order.model");
-const Token = require("../models/token.model");
+const Token = require("../models/usertoken.model");
 const ErrorHandler = require("../utils/errorHandler");
 const { sendMail } = require("../utils/sendMail");
 const { sendToken } = require("../utils/jwtToken");
@@ -81,7 +81,7 @@ exports.createUser = async (req, res, next) => {
       });
     } catch (error) {
       console.log(error);
-      return next(new ErrorHandler("Failed to send activation email", 500));
+      return next(new ErrorHandler("Failed to send verification email", 500));
     }
   } catch (error) {
     console.log(error);
@@ -108,8 +108,7 @@ exports.activation = async (req, res, next) => {
     const user = await User.findById(userToken.userId);
 
     if (user.isEmailVerified) {
-      res.status(400);
-      throw new Error("User is already verified");
+      return next(new ErrorHandler("User is already verified", 400));
     }
 
     user.isEmailVerified = true;
