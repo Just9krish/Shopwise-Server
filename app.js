@@ -56,6 +56,14 @@ app.use("/api/v2/payments", paymentRoutes);
 app.use("/api/v2/orders", orderRoutes);
 app.use("/api/v2/events", eventRoutes);
 
+// Catch-all route handler for unmatched routes
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: "Not Found",
+  });
+});
+
 // if error
 app.use(ErrorHandler);
 

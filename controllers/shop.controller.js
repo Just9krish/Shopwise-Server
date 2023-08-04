@@ -7,10 +7,6 @@ const crypto = require("crypto");
 const fs = require("fs");
 const { sendMail } = require("../utils/sendMail");
 const ErrorHandler = require("../utils/errorHandler");
-const {
-  createActivationToken,
-  decodeActivationToken,
-} = require("../helper/helper");
 const { sendShopToken } = require("../utils/shopToken");
 const ShopToken = require("../models/shoptoken.model");
 const { hashToken } = require("../utils/hashToken");
@@ -23,6 +19,7 @@ const CLIENT_DOMAIN =
 // shop creation
 exports.createShop = async (req, res, next) => {
   try {
+    console.log(req.body);
     const { email, name, password, address, zipcode, phoneNumber } = req.body;
 
     const alreadyShop = await Shop.findOne({ email: email });
@@ -119,7 +116,7 @@ exports.shopActivation = async (req, res, next) => {
     shop.isEmailVerified = true;
     await shop.save();
 
-    sendShopToken(newShop, 201, res);
+    sendShopToken(shop, 201, res);
   } catch (error) {
     console.log(error);
     return next(new ErrorHandler("Failed to create shop", 500));
