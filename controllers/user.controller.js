@@ -253,7 +253,7 @@ exports.resetPassword = async (req, res, next) => {
       return next(new ErrorHandler("Invalid or Expired Token", 404));
     }
 
-    const user = User.findById(userToken.userId);
+    const user = await User.findById(userToken.userId);
     user.password = password;
 
     await user.save();
