@@ -37,12 +37,6 @@ app.use(logger("dev"));
 app.use("/", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "./config/.env",
-  });
-}
-
 // import routes
 const userRoutes = require("./routes/user.routes");
 const shopRoutes = require("./routes/shop.routes");
@@ -51,6 +45,7 @@ const couponRoutes = require("./routes/coupons.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const orderRoutes = require("./routes/order.routes");
 const eventRoutes = require("./routes/event.routes");
+const { log } = require("console");
 
 // routes
 app.use("/api/v2/coupons", couponRoutes);
