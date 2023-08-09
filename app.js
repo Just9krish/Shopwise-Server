@@ -37,7 +37,7 @@ app.use(logger("dev"));
 app.use("/", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-// import routes
+// Import routes
 const userRoutes = require("./routes/user.routes");
 const shopRoutes = require("./routes/shop.routes");
 const productRoutes = require("./routes/product.routes");
@@ -45,9 +45,10 @@ const couponRoutes = require("./routes/coupons.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const orderRoutes = require("./routes/order.routes");
 const eventRoutes = require("./routes/event.routes");
-const { log } = require("console");
+const cartRoutes = require("./routes/cart.routes");
+const wishlistRoutes = require("./routes/wishlist.routes");
 
-// routes
+// Routes
 app.use("/api/v2/coupons", couponRoutes);
 app.use("/api/v2/users", userRoutes);
 app.use("/api/v2/shops", shopRoutes);
@@ -55,16 +56,18 @@ app.use("/api/v2/products", productRoutes);
 app.use("/api/v2/payments", paymentRoutes);
 app.use("/api/v2/orders", orderRoutes);
 app.use("/api/v2/events", eventRoutes);
+app.use("/api/v2/cart", cartRoutes);
+app.use("/api/v2/wishlist", wishlistRoutes);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
-    message: "Not Found",
+    message: "Route Not Found",
   });
 });
 
-// if error
+// If error
 app.use(ErrorHandler);
 
 module.exports = app;
