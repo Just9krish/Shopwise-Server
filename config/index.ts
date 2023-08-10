@@ -1,0 +1,18 @@
+export default {
+  port: process.env.PORT!,
+  dbUri: process.env.DBPATH!,
+  jwtSecret: process.env.JWT_SECRET!,
+  jwtExpiration: process.env.JWT_EXPIRATION!,
+  nodeEnv: process.env.NODE_ENV!,
+  activatioSecret: process.env.ACTIVATION_SECRET!,
+  smptHost: process.env.SMTP_HOST!,
+  smptPort: process.env.SMTP_PORT!,
+  smptPassword: process.env.SMPT_PASSWORD!,
+  smptUser: process.env.SMPT_MAIL!,
+  stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY!,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
+  clientDomainDev: process.env.CLIENT_DOMAIN_DEV!,
+  clientDomainProd: process.env.CLIENT_DOMAIN_PROD!,
+  shopLogo: process.env.SHOP_LOGO!,
+  saltWorkFactor: process.env.SALT_WORK_FACTOR!,
+};
