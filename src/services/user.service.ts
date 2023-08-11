@@ -22,7 +22,7 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      throw new ErrorHandler("User already exists", 400);
+      return new ErrorHandler("User already exists", 400);
     }
 
     const user = await User.create({
@@ -32,10 +32,7 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
     });
 
     // Delete Token if it exists in DB
-    const token = await Token.findOne({ userId: user._id });
-    if (token) {
-      await token.deleteOne();
-    }
+    const token = await findOneAndDeleteUserToken(user._id);
 
     const verificationToken = creatVerificationToken(user._id);
 
@@ -52,26 +49,21 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
     const link = verificationUrl;
     const logoUrl = process.env.SHOP_LOGO!;
 
-    try {
-      await sendMail(
-        subject,
-        email,
-        sent_from,
-        reply_to,
-        template,
-        name,
-        link,
-        logoUrl
-      );
+    await sendMail(
+      subject,
+      email,
+      sent_from,
+      reply_to,
+      template,
+      name,
+      link,
+      logoUrl
+    );
 
-      return {
-        success: true,
-        message: "Verification Email Sent",
-      };
-    } catch (error) {
-      logger.error(error);
-      throw new ErrorHandler("Failed to send verification email", 500);
-    }
+    return {
+      success: true,
+      message: "Verification Email Sent",
+    };
   } catch (error) {
     logger.error(error);
     throw new ErrorHandler("Failed to create user", 500);
@@ -195,5 +187,30 @@ export async function forgotPasswordByUserEmail(email: string) {
     );
   } catch (error) {
     throw new ErrorHandler("Something went wrong", 500);
+  }
+}
+
+export async function resetUserPassword(token: string, newPassword: string) {
+  try {
+    const hashedToken = hashToken(token);
+
+    const userToken = await findVerificationToken(hashedToken);
+
+    if (!userToken) {
+      throw new ErrorHandler("Invalid or Expired Token", 404);
+    }
+
+    const user = await User.findById(userToken.userId);
+
+    if (!user) {
+      throw new ErrorHandler("User not found", 404);
+    }
+
+    user.password = newPassword;
+
+    return await user.save();
+  } catch (error) {
+    logger.error(error);
+    throw new ErrorHandler("Failed to reset password", 500);
   }
 }

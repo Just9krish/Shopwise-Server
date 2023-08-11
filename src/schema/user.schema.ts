@@ -10,7 +10,10 @@ export const createUserSchema = object({
     }).email("Not a valid email"),
     password: string({
       required_error: "Password is required",
-    }).min(6, "Password too short - should be 6 chars minimum"),
+    }).regex(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long"
+    ),
     passwordConfirmation: string({
       required_error: "Password confirmation is required",
     }),
@@ -39,7 +42,7 @@ export const loginUserSchema = object({
   body: object({
     email: string({
       required_error: "Email is required",
-    }),
+    }).email("Not a valid email"),
     password: string({
       required_error: "Password is required",
     }),
@@ -52,8 +55,38 @@ export const forgotPasswordSchema = object({
   body: object({
     email: string({
       required_error: "Email is required",
-    }),
+    }).email("Not a valid email"),
   }),
 });
 
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = object({
+  body: object({
+    password: string({
+      required_error: "Password is required",
+    }).regex(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long"
+    ),
+    confirmPassword: string({
+      required_error: "Password confirmation is required",
+    }),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  }),
+});
+
+export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>;
+
+export const updateUserSchema = object({
+  body: object({
+    name: string({
+      required_error: "Name is required",
+    }),
+    email: string({
+      required_error: "Email is required",
+    }).email("Not a valid email"),
+  }),
+});

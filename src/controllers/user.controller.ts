@@ -12,6 +12,7 @@ import {
   CreateUserInput,
   ForgotPasswordInput,
   LoginUserInput,
+  ResetPasswordInput,
   VerifyUserInput,
 } from "../schema/user.schema";
 import {
@@ -19,8 +20,13 @@ import {
   forgotPasswordByUserEmail,
   getUserDetailsById,
   loginUserAndSetCookie,
+  resetUserPassword,
   verifyUserEmail,
 } from "../services/user.service";
+
+interface AuthenticatedRequest extends Request {
+  user: { id: string }; // Define the user property with the appropriate type
+}
 
 // const CLIENT_DOMAIN =
 //   config.get<string>("nodeEnv") === "PRODUCTION"
@@ -86,13 +92,13 @@ export const loginUserHandler = async (
     sendToken(user, 200, res);
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler("Failed to login user", 500));
+    return next(new ErrorHandler(error.message, 500));
   }
 };
 
 // get user information
 export const getUserHandler = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -103,7 +109,7 @@ export const getUserHandler = async (
 
     res.status(200).json({ success: true, user });
   } catch (error: any) {
-    console.log(error);
+    logger.error(error);
     return next(new ErrorHandler(error.message, 500));
   }
 };
@@ -126,35 +132,26 @@ export const forgotUserPasswordHandler = async (
   }
 };
 
-// // reset user password
-// exports.resetPassword = async (req, res, next) => {
-//   try {
-//     const { resetToken } = req.params;
-//     const { password } = req.body;
+// reset user password
+export const resetPassword = async (
+  req: Request<{ resetToken: string }, {}, ResetPasswordInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { resetToken } = req.params;
+    const { password } = req.body;
 
-//     const hashedToken = hashToken(resetToken);
+    const user = await resetUserPassword(resetToken, password);
 
-//     const userToken = await Token.findOne({
-//       rToken: hashedToken,
-//       expiresAt: { $gt: Date.now() },
-//     });
-
-//     if (!userToken) {
-//       return next(new ErrorHandler("Invalid or Expired Token", 404));
-//     }
-
-//     const user = await User.findById(userToken.userId);
-//     user.password = password;
-
-//     await user.save();
-//     res
-//       .status(200)
-//       .json({ message: "Password Reset Successful, please login" });
-//   } catch (error) {
-//     console.log(error);
-//     return next(new ErrorHandler(error.message, 500));
-//   }
-// };
+    res
+      .status(200)
+      .json({ message: "Password Reset Successful, please login" });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+};
 
 // // update user profile
 // exports.updateUserProfile = async (req, res, next) => {
