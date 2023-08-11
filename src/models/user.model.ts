@@ -134,7 +134,9 @@ userSchema.pre("save", async function (next) {
     next();
   }
 
-  const salt = await genSalt(config.get<number>("saltWorkFactor"));
+  const SALT_WORK_FACTOR = +process.env.SALT_WORK_FACTOR!;
+
+  const salt = await genSalt(SALT_WORK_FACTOR);
 
   user.password = await hashSync(user.password, salt);
 });

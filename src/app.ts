@@ -3,7 +3,7 @@ import config from "config";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import cors from "cors";
-// import logger from "morgan";
+import logger from "morgan";
 import ErrorHandler from "./middleware/error";
 import "dotenv/config";
 
@@ -42,13 +42,13 @@ app.use(
     credentials: true,
   })
 );
-// app.use(logger("dev"));
+app.use(logger("dev"));
 app.use("/", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
 // Import routes
-const userRoutes = require("./routes/user.routes");
-const shopRoutes = require("./routes/shop.routes");
+import userRoutes from "./routes/user.routes";
+// import shopRoutes from "./routes/shop.routes";
 // const productRoutes = require("./routes/product.routes");
 // const couponRoutes = require("./routes/coupons.routes");
 // const paymentRoutes = require("./routes/payment.routes");
@@ -59,7 +59,7 @@ const shopRoutes = require("./routes/shop.routes");
 
 // Routes
 app.use("/api/v2/users", userRoutes);
-app.use("/api/v2/shops", shopRoutes);
+// app.use("/api/v2/shops", shopRoutes);
 // app.use("/api/v2/coupons", couponRoutes);
 // app.use("/api/v2/products", productRoutes);
 // app.use("/api/v2/payments", paymentRoutes);

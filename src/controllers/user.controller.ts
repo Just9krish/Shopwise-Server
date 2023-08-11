@@ -67,7 +67,7 @@ export const userEmailVerificationHandler = async (
 
     sendToken(user, 200, res);
   } catch (error: any) {
-    console.log(error);
+    logger.error(error);
     return next(new ErrorHandler("Something went wrong", 500));
   }
 };
@@ -85,7 +85,7 @@ export const loginUserHandler = async (
 
     sendToken(user, 200, res);
   } catch (error: any) {
-    console.error(error);
+    logger.error(error);
     return next(new ErrorHandler("Failed to login user", 500));
   }
 };
@@ -126,233 +126,233 @@ export const forgotUserPasswordHandler = async (
   }
 };
 
-// reset user password
-exports.resetPassword = async (req, res, next) => {
-  try {
-    const { resetToken } = req.params;
-    const { password } = req.body;
+// // reset user password
+// exports.resetPassword = async (req, res, next) => {
+//   try {
+//     const { resetToken } = req.params;
+//     const { password } = req.body;
 
-    const hashedToken = hashToken(resetToken);
+//     const hashedToken = hashToken(resetToken);
 
-    const userToken = await Token.findOne({
-      rToken: hashedToken,
-      expiresAt: { $gt: Date.now() },
-    });
+//     const userToken = await Token.findOne({
+//       rToken: hashedToken,
+//       expiresAt: { $gt: Date.now() },
+//     });
 
-    if (!userToken) {
-      return next(new ErrorHandler("Invalid or Expired Token", 404));
-    }
+//     if (!userToken) {
+//       return next(new ErrorHandler("Invalid or Expired Token", 404));
+//     }
 
-    const user = await User.findById(userToken.userId);
-    user.password = password;
+//     const user = await User.findById(userToken.userId);
+//     user.password = password;
 
-    await user.save();
-    res
-      .status(200)
-      .json({ message: "Password Reset Successful, please login" });
-  } catch (error) {
-    console.log(error);
-    return next(new ErrorHandler(error.message, 500));
-  }
-};
+//     await user.save();
+//     res
+//       .status(200)
+//       .json({ message: "Password Reset Successful, please login" });
+//   } catch (error) {
+//     console.log(error);
+//     return next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// update user profile
-exports.updateUserProfile = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { email, password, primaryPhoneNumber, secondaryPhoneNumber, name } =
-      req.body;
+// // update user profile
+// exports.updateUserProfile = async (req, res, next) => {
+//   try {
+//     const userId = req.user.id;
+//     const { email, password, primaryPhoneNumber, secondaryPhoneNumber, name } =
+//       req.body;
 
-    const user = await User.findById(userId).select("+password");
+//     const user = await User.findById(userId).select("+password");
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
-    }
+//     if (!user) {
+//       return next(new ErrorHandler("User not found", 404));
+//     }
 
-    const isPasswordValid = await user.comparePassword(password);
+//     const isPasswordValid = await user.comparePassword(password);
 
-    if (!isPasswordValid) {
-      return next(new ErrorHandler("Enter Correct Password", 400));
-    }
+//     if (!isPasswordValid) {
+//       return next(new ErrorHandler("Enter Correct Password", 400));
+//     }
 
-    user.name = name;
-    user.email = email;
-    user.primaryPhoneNumber = primaryPhoneNumber;
-    user.secondaryPhoneNumber = secondaryPhoneNumber;
+//     user.name = name;
+//     user.email = email;
+//     user.primaryPhoneNumber = primaryPhoneNumber;
+//     user.secondaryPhoneNumber = secondaryPhoneNumber;
 
-    await user.save();
+//     await user.save();
 
-    res.status(201).json({ success: true, user });
-  } catch (error) {
-    console.log(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(201).json({ success: true, user });
+//   } catch (error) {
+//     console.log(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// update user profile picture
-exports.updateUserProfilePicture = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
+// // update user profile picture
+// exports.updateUserProfilePicture = async (req, res, next) => {
+//   try {
+//     const userId = req.user.id;
 
-    const existingUser = await User.findById(userId);
+//     const existingUser = await User.findById(userId);
 
-    const existingPath = `uploads/${existingUser.avatar}`;
-    fs.unlinkSync(existingPath);
-    const filepath = path.join(req.file.filename);
+//     const existingPath = `uploads/${existingUser.avatar}`;
+//     fs.unlinkSync(existingPath);
+//     const filepath = path.join(req.file.filename);
 
-    const user = await User.findByIdAndUpdate(userId, { avatar: filepath });
+//     const user = await User.findByIdAndUpdate(userId, { avatar: filepath });
 
-    res.status(201).json({ success: true, user });
-  } catch (error) {
-    console.log(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(201).json({ success: true, user });
+//   } catch (error) {
+//     console.log(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// add user address
-exports.addUserAdress = async (req, res, next) => {
-  try {
-    const {
-      country,
-      state,
-      address1,
-      address2,
-      address3,
-      zipcode,
-      addressType,
-    } = req.body;
+// // add user address
+// exports.addUserAdress = async (req, res, next) => {
+//   try {
+//     const {
+//       country,
+//       state,
+//       address1,
+//       address2,
+//       address3,
+//       zipcode,
+//       addressType,
+//     } = req.body;
 
-    const userId = req.user.id;
+//     const userId = req.user.id;
 
-    const user = await User.findById(userId);
+//     const user = await User.findById(userId);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
 
-    const sameTypeAdress = user.addresses.find(
-      (address) => address.addressType === addressType
-    );
+//     const sameTypeAdress = user.addresses.find(
+//       (address) => address.addressType === addressType
+//     );
 
-    if (sameTypeAdress) {
-      return next(new ErrorHandler(`${addressType} already exists`, 400));
-    }
+//     if (sameTypeAdress) {
+//       return next(new ErrorHandler(`${addressType} already exists`, 400));
+//     }
 
-    user.addresses.push({
-      country,
-      state,
-      address1,
-      address2,
-      address3,
-      zipcode,
-      addressType,
-    });
+//     user.addresses.push({
+//       country,
+//       state,
+//       address1,
+//       address2,
+//       address3,
+//       zipcode,
+//       addressType,
+//     });
 
-    await user.save();
+//     await user.save();
 
-    res.status(201).json({ message: "Address added successfully", user });
-  } catch (error) {
-    console.error(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(201).json({ message: "Address added successfully", user });
+//   } catch (error) {
+//     console.error(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// user can delete address
-exports.deleteAddress = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
+// // user can delete address
+// exports.deleteAddress = async (req, res, next) => {
+//   try {
+//     const userId = req.user.id;
 
-    const user = await User.findById(userId);
+//     const user = await User.findById(userId);
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
-    }
+//     if (!user) {
+//       return next(new ErrorHandler("User not found", 404));
+//     }
 
-    const addressId = req.params.addressId;
+//     const addressId = req.params.addressId;
 
-    const address = user.addresses.find((address) => address._id == addressId);
+//     const address = user.addresses.find((address) => address._id == addressId);
 
-    if (!address) {
-      return next(new ErrorHandler("Address not found", 404));
-    }
+//     if (!address) {
+//       return next(new ErrorHandler("Address not found", 404));
+//     }
 
-    user.addresses.pull(addressId);
+//     user.addresses.pull(addressId);
 
-    await user.save();
+//     await user.save();
 
-    res.status(201).json({ message: "Address deleted successfully", user });
-  } catch (error) {
-    console.error(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(201).json({ message: "Address deleted successfully", user });
+//   } catch (error) {
+//     console.error(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// user change password
-exports.changePassword = async (req, res, next) => {
-  try {
-    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+// // user change password
+// exports.changePassword = async (req, res, next) => {
+//   try {
+//     const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
-    const userId = req.user.id;
+//     const userId = req.user.id;
 
-    const user = await User.findById(userId).select("+password");
+//     const user = await User.findById(userId).select("+password");
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 400));
-    }
+//     if (!user) {
+//       return next(new ErrorHandler("User not found", 400));
+//     }
 
-    if (newPassword != confirmNewPassword) {
-      return next(
-        new ErrorHandler(
-          "New password is not match with confrimed password",
-          400
-        )
-      );
-    }
-    const isMatch = await user.comparePassword(oldPassword);
+//     if (newPassword != confirmNewPassword) {
+//       return next(
+//         new ErrorHandler(
+//           "New password is not match with confrimed password",
+//           400
+//         )
+//       );
+//     }
+//     const isMatch = await user.comparePassword(oldPassword);
 
-    if (!isMatch) {
-      return next(new ErrorHandler("Invalid old password", 400));
-    }
+//     if (!isMatch) {
+//       return next(new ErrorHandler("Invalid old password", 400));
+//     }
 
-    user.password = newPassword;
-    await user.save();
+//     user.password = newPassword;
+//     await user.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Password updated successfully" });
-  } catch (error) {
-    console.error(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res
+//       .status(200)
+//       .json({ success: true, message: "Password updated successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// log out user
-exports.logOutUser = async (req, res, next) => {
-  try {
-    res.cookie("token", null, {
-      expires: new Date(Date.now()),
-      httpOnly: true,
-    });
+// // log out user
+// exports.logOutUser = async (req, res, next) => {
+//   try {
+//     res.cookie("token", null, {
+//       expires: new Date(Date.now()),
+//       httpOnly: true,
+//     });
 
-    res.status(201).json({ success: true, message: "Log out Successful!" });
-  } catch (error) {
-    console.log(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(201).json({ success: true, message: "Log out Successful!" });
+//   } catch (error) {
+//     console.log(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };
 
-// get all user orders
-exports.getAllOrdersOfUser = async (req, res, next) => {
-  try {
-    const userID = req.user.id;
+// // get all user orders
+// exports.getAllOrdersOfUser = async (req, res, next) => {
+//   try {
+//     const userID = req.user.id;
 
-    const userOrders = await Order.find({ user: userID }).sort({
-      createdAt: -1,
-    });
+//     const userOrders = await Order.find({ user: userID }).sort({
+//       createdAt: -1,
+//     });
 
-    res.status(200).json({ success: true, orders: userOrders });
-  } catch (error) {
-    console.log(error);
-    next(new ErrorHandler(error.message, 500));
-  }
-};
+//     res.status(200).json({ success: true, orders: userOrders });
+//   } catch (error) {
+//     console.log(error);
+//     next(new ErrorHandler(error.message, 500));
+//   }
+// };

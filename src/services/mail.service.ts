@@ -3,6 +3,7 @@ import hbs from "nodemailer-express-handlebars";
 import path from "path";
 import config from "config";
 import logger from "../utils/logger";
+import ErrorHandler from "../utils/errorHandler";
 
 interface MailOptions {
   from: string;
@@ -40,6 +41,8 @@ const sendMail = async (
     },
   });
 
+  console.log(path.resolve("./views"));
+
   const handlebarOptions: hbs.NodemailerExpressHandlebarsOptions = {
     viewEngine: {
       extname: ".handlebars",
@@ -63,11 +66,15 @@ const sendMail = async (
     },
   };
 
+  console.log(mailOptions);
+
   try {
     const info = await transporter.sendMail(mailOptions);
     logger.info(info);
   } catch (err) {
+    console.log("mail error");
     logger.error(err);
+    throw new ErrorHandler("failed to send email", 500);
   }
 };
 

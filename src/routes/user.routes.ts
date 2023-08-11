@@ -12,15 +12,7 @@ import {
   userEmailVerificationHandler,
   loginUserHandler,
   getUserHandler,
-  logOutUser,
-  updateUserProfile,
-  updateUserProfilePicture,
-  addUserAdress,
-  deleteAddress,
-  changePassword,
-  getAllOrdersOfUser,
   forgotUserPasswordHandler,
-  resetPassword,
 } from "../controllers/user.controller";
 import upload from "../upload";
 import catchAsyncError from "../middleware/catchAsyncError";
@@ -50,36 +42,36 @@ router.post(
   catchAsyncError(forgotUserPasswordHandler)
 );
 
-// reset user password
-router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
+// // reset user password
+// router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
 
-// logout user
-router.get("/logout", catchAsyncError(logOutUser));
+// // logout user
+// router.get("/logout", catchAsyncError(logOutUser));
 
-// retrive user information
-router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
+// // retrive user information
+// router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
 
-// update user
-router.put("/profile", isVerify, catchAsyncError(updateUserProfile));
+// // update user
+// router.put("/profile", isVerify, catchAsyncError(updateUserProfile));
 
-// update profile picture
-router.put(
-  "/avatar",
-  isVerify,
-  upload.single("file"),
-  catchAsyncError(updateUserProfilePicture)
-);
+// // update profile picture
+// router.put(
+//   "/avatar",
+//   isVerify,
+//   upload.single("file"),
+//   catchAsyncError(updateUserProfilePicture)
+// );
 
-// add address of user
-router.post("/address", isVerify, catchAsyncError(addUserAdress));
+// // add address of user
+// router.post("/address", isVerify, catchAsyncError(addUserAdress));
 
-// delete user address
-router.delete("/address/:addressId", isVerify, catchAsyncError(deleteAddress));
+// // delete user address
+// router.delete("/address/:addressId", isVerify, catchAsyncError(deleteAddress));
 
-// user password change
-router.post("/password-change", isVerify, catchAsyncError(changePassword));
+// // user password change
+// router.post("/password-change", isVerify, catchAsyncError(changePassword));
 
-// get all user order
-router.get("/:userId/orders", isVerify, catchAsyncError(getAllOrdersOfUser));
+// // get all user order
+// router.get("/:userId/orders", isVerify, catchAsyncError(getAllOrdersOfUser));
 
-module.exports = router;
+export default router;
