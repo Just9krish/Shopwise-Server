@@ -3,7 +3,7 @@ export default {
   dbUri: process.env.DBPATH!,
   jwtSecret: process.env.JWT_SECRET!,
   jwtExpiration: process.env.JWT_EXPIRATION!,
-  nodeEnv: process.env.NODE_ENV!,
+  nodeEnv: "NODE_ENV",
   activatioSecret: process.env.ACTIVATION_SECRET!,
   smptHost: process.env.SMTP_HOST!,
   smptPort: process.env.SMTP_PORT!,

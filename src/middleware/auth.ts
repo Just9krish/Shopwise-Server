@@ -6,7 +6,8 @@ import catchAsyncError from "./catchAsyncError";
 import User from "../models/user.model";
 import Shop from "../models/shop.model";
 
-const jwtSecret = config.get<string>("jwtSecret");
+// const jwtSecret = config.get<string>("jwtSecret");
+const jwtSecret = process.env.JWT_SECRET!;
 
 export const isVerify = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +19,10 @@ export const isVerify = catchAsyncError(
 
     try {
       const decoded: any = jwt.verify(token, jwtSecret);
-      req.user = await User.findById(decoded.id);
+      const user = await User.findById(decoded.id);
+
+      req.user = { _id: user?._id.toString() };
+
       next();
     } catch (error) {
       return next(new ErrorHandler("Invalid token", 401));

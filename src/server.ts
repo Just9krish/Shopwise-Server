@@ -1,7 +1,8 @@
-const app = require("./app");
+import app from "./app";
 import connectDatabase from "./db/database";
 import config from "config";
 import logger from "./utils/logger";
+import dotenv from "dotenv";
 
 // handle uncaught exception
 process.on("uncaughtException", (err) => {
@@ -10,15 +11,14 @@ process.on("uncaughtException", (err) => {
 });
 
 if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "./config/.env",
-  });
+  dotenv.config();
 }
 
 // connect db
 connectDatabase();
 
-const port = config.get<number>("port");
+// const port = config.get<number>("port");
+const port = process.env.PORT || 3000;
 
 // connect server
 const server = app.listen(port, () => {

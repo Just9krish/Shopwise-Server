@@ -15,9 +15,9 @@ const {
   getShopAllOrders,
   updateOrderStatus,
 } = require("../controllers/shop.controller");
-const { isSeller } = require("../middleware/auth");
-const catchAsyncError = require("../middleware/catchAsyncError");
-const upload = require("../upload");
+import { isSeller } from "../middleware/auth";
+import catchAsyncError from "../middleware/catchAsyncError";
+import upload from "../upload";
 
 const router = require("express").Router();
 
@@ -37,12 +37,12 @@ router.get("/logout", catchAsyncError(logOutShop));
 router.get("/get-shop", isSeller, getShop);
 
 // create event handlers
-router.post(
-  "/events",
-  isSeller,
-  upload.array("images"),
-  catchAsyncError(createEvent)
-);
+// router.post(
+//   "/events",
+//   isSeller,
+//   upload.array("images"),
+//   catchAsyncError(createEvent)
+// );
 
 // get all events of shop
 router.get("/:shopId/events", catchAsyncError(getAllEventsOfShop));

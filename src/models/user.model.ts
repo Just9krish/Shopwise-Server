@@ -3,6 +3,12 @@ import { genSalt, compare, hashSync } from "bcrypt";
 import { sign } from "jsonwebtoken";
 import config from "config";
 
+export interface UserInput {
+  name: string;
+  password: string;
+  email: string;
+}
+
 export interface UserAddressDocument {
   country: string;
   state: string;
@@ -13,10 +19,7 @@ export interface UserAddressDocument {
   addressType: string;
 }
 
-export interface UserDocument extends Document {
-  name: string;
-  email: string;
-  password: string;
+export interface UserDocument extends UserInput, Document {
   primaryPhoneNumber?: number;
   secondaryPhoneNumber?: number;
   addresses?: UserAddressDocument[];
@@ -136,7 +139,8 @@ userSchema.pre("save", async function (next) {
   user.password = await hashSync(user.password, salt);
 });
 
-const JWT_SECRET = config.get<string>("jwtSecret");
+// const JWT_SECRET = config.get<string>("jwtSecret");
+const JWT_SECRET = process.env.JWT_SECRET!;
 
 // jwt token
 userSchema.methods.getJwtToken = function () {
@@ -151,6 +155,6 @@ userSchema.methods.comparePassword = async function (enteredPassword: string) {
   return await compare(enteredPassword, user.password);
 };
 
-const User = model("User", userSchema);
+const User = model<UserDocument>("User", userSchema);
 
 export default User;

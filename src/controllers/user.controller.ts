@@ -1,26 +1,39 @@
 import { Request, Response, NextFunction } from "express";
 import path from "path";
-import crypto from "crypto";
 import fs from "fs";
 import User from "../models/user.model";
-const Order = require("../models/order.model");
-const Token = require("../models/usertoken.model");
-const ErrorHandler = require("../utils/errorHandler");
-const { sendMail } = require("../utils/sendMail");
-const { sendToken } = require("../utils/jwtToken");
-const { hashToken } = require("../utils/hashToken");
+import Order from "../models/order.model";
+import Token from "../models/usertoken.model";
+import ErrorHandler from "../utils/errorHandler";
+import sendToken from "../utils/jwtToken";
 import logger from "../utils/logger";
 import config from "config";
-import { CreateUserInput } from "../schema/user.schema";
-import { createUser } from "../services/user.services";
+import {
+  CreateUserInput,
+  ForgotPasswordInput,
+  LoginUserInput,
+  VerifyUserInput,
+} from "../schema/user.schema";
+import {
+  createUserAndSendVerificationEmail,
+  forgotPasswordByUserEmail,
+  getUserDetailsById,
+  loginUserAndSetCookie,
+  verifyUserEmail,
+} from "../services/user.service";
+
+// const CLIENT_DOMAIN =
+//   config.get<string>("nodeEnv") === "PRODUCTION"
+//     ? config.get<string>("clientDomainProd")
+//     : config.get<string>("clientDomainDev");
 
 const CLIENT_DOMAIN =
-  config.get<string>("nodeEnv") === "PRODUCTION"
-    ? config.get<string>("clientDomainProd")
-    : config.get<string>("clientDomainDev");
+  process.env.NODE_ENV === "PRODUCTION"
+    ? process.env.CLIENT_DOMAIN_PROD
+    : process.env.CLIENT_DOMAIN_DEV;
 
 // register user
-exports.createUserHandler = async (
+export const createUserHandler = async (
   req: Request<{}, {}, CreateUserInput["body"]>,
   res: Response,
   next: NextFunction
@@ -28,214 +41,87 @@ exports.createUserHandler = async (
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return next(new ErrorHandler("Please enter all fields", 400));
-    }
+    const result = await createUserAndSendVerificationEmail({
+      email: email,
+      password: password,
+      name: name,
+    });
 
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return next(new ErrorHandler("User already exists", 400));
-    }
-
-    const user = await createUser(req.body);
-
-    // Delete Token if it exists in DB
-    let token = await Token.findOne({ userId: user._id });
-    if (token) {
-      await token.deleteOne();
-    }
-
-    //   Create Verification Token and Save
-    const verificationToken = crypto.randomBytes(32).toString("hex") + user._id;
-
-    const hashedToken = hashToken(verificationToken);
-    await new Token({
-      userId: user._id,
-      vToken: hashedToken,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
-    }).save();
-
-    const verificationUrl = `${CLIENT_DOMAIN}/user/verify/${verificationToken}`;
-
-    const subject = "Verify Your Account - Shopwise";
-    const send_to = user.email;
-    const sent_from = process.env.SMPT_MAIL;
-    const reply_to = "noreply@shopwise.com";
-    const template = "verifyEmail";
-    const link = verificationUrl;
-    const logoUrl = process.env.SHOP_LOGO;
-
-    try {
-      await sendMail(
-        subject,
-        send_to,
-        sent_from,
-        reply_to,
-        template,
-        user.name,
-        link,
-        logoUrl
-      );
-
-      res.status(200).json({
-        success: true,
-        message: `Verification Email Sent`,
-      });
-    } catch (error) {
-      console.log(error);
-      return next(new ErrorHandler("Failed to send verification email", 500));
-    }
-  } catch (error) {
+    res.status(201).json(result);
+  } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler("Failed to create user", 500));
+    return next(new ErrorHandler("Something went wrong", 500));
   }
 };
 
 // activate user account
-exports.activation = async (req, res, next) => {
+export const userEmailVerificationHandler = async (
+  req: Request<{}, {}, VerifyUserInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { activation_token } = req.body;
+    const { verificationToken } = req.body;
 
-    const hashedToken = hashToken(activation_token);
+    const user = await verifyUserEmail(verificationToken);
 
-    const userToken = await Token.findOne({
-      vToken: hashedToken,
-      expiresAt: { $gt: Date.now() },
-    });
-
-    if (!userToken) {
-      return next(new ErrorHandler("Invalid or Expired Token", 404));
-    }
-
-    const user = await User.findById(userToken.userId);
-
-    if (user.isEmailVerified) {
-      return next(new ErrorHandler("User is already verified", 400));
-    }
-
-    user.isEmailVerified = true;
-    await user.save();
-
-    sendToken(user, 201, res);
-  } catch (error) {
+    sendToken(user, 200, res);
+  } catch (error: any) {
     console.log(error);
-    return next(new ErrorHandler("Failed to create user", 500));
+    return next(new ErrorHandler("Something went wrong", 500));
   }
 };
 
 // login user
-exports.loginUser = async (req, res, next) => {
+export const loginUserHandler = async (
+  req: Request<{}, {}, LoginUserInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return next(new ErrorHandler("Please provide all the fields", 400));
-    }
-
-    const user = await User.findOne({ email }).select("+password");
-
-    if (!user) {
-      return next(new ErrorHandler("User doesn't exist", 404));
-    }
-
-    if (!user.isEmailVerified) {
-      return next(new ErrorHandler("Email is not verified", 400));
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-
-    if (!isPasswordValid) {
-      return next(new ErrorHandler("Wrong Password", 400));
-    }
+    const user = await loginUserAndSetCookie({ email, password });
 
     sendToken(user, 200, res);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return next(new ErrorHandler("Failed to login user", 500));
   }
 };
 
 // get user information
-exports.getUser = async (req, res, next) => {
+export const getUserHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
 
-    if (!user) {
-      return next(new ErrorHandler("User does't exist", 404));
-    }
+    const user = await getUserDetailsById(userId);
 
     res.status(200).json({ success: true, user });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     return next(new ErrorHandler(error.message, 500));
   }
 };
 
 // forgot password
-exports.forgotPassword = async (req, res, next) => {
+export const forgotUserPasswordHandler = async (
+  req: Request<{}, {}, ForgotPasswordInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    await forgotPasswordByUserEmail(email);
 
-    if (!user) {
-      res.status(404);
-      return next(new ErrorHandler("No user with this email", 400));
-    }
-
-    // Delete Token if it exists in DB
-    let token = await Token.findOne({ userId: user._id });
-    if (token) {
-      await token.deleteOne();
-    }
-
-    //   Create Verification Token and Save
-    const resetToken = crypto.randomBytes(32).toString("hex") + user._id;
-
-    // hash token
-    const hashedToken = hashToken(resetToken);
-
-    await new Token({
-      userId: user._id,
-      rToken: hashedToken,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 60 * (60 * 1000), // 60mins
-    }).save();
-
-    // Construct Reset URL
-    const resetUrl = `${CLIENT_DOMAIN}/resetPassword/${resetToken}`;
-
-    // Send Email
-    const subject = "Password Reset Request - Shopwise";
-    const send_to = user.email;
-    const sent_from = process.env.SMPT_MAIL;
-    const reply_to = "noreply@shopwise.com";
-    const template = "forgotPassword";
-    const name = user.name;
-    const link = resetUrl;
-    const logoUrl = process.env.SHOP_LOGO;
-
-    try {
-      await sendMail(
-        subject,
-        send_to,
-        sent_from,
-        reply_to,
-        template,
-        name,
-        link,
-        logoUrl
-      );
-      res.status(200).json({ message: "Password Reset Email Sent" });
-    } catch (error) {
-      console.log(error);
-      return next(new ErrorHandler("Email not sent, please try again", 500));
-    }
-  } catch (error) {
-    console.log(error);
+    res.status(200).json({ message: "Password Reset Email Sent" });
+  } catch (error: any) {
+    logger.error(error);
     return next(new ErrorHandler(error.message, 500));
   }
 };

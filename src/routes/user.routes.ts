@@ -1,12 +1,17 @@
 import validate from "../middleware/validateResource";
-import { createUserSchema } from "../schema/user.schema";
+import {
+  createUserSchema,
+  forgotPasswordSchema,
+  loginUserSchema,
+  verifyUserSchema,
+} from "../schema/user.schema";
 
 const router = require("express").Router();
-const {
-  createUser,
-  activation,
-  loginUser,
-  getUser,
+import {
+  createUserHandler,
+  userEmailVerificationHandler,
+  loginUserHandler,
+  getUserHandler,
   logOutUser,
   updateUserProfile,
   updateUserProfilePicture,
@@ -14,24 +19,36 @@ const {
   deleteAddress,
   changePassword,
   getAllOrdersOfUser,
-  forgotPassword,
+  forgotUserPasswordHandler,
   resetPassword,
-} = require("../controllers/user.controller");
-const upload = require("../../uploads");
-const catchAsyncError = require("../middleware/catchAsyncError");
-const { isVerify } = require("../middleware/auth");
+} from "../controllers/user.controller";
+import upload from "../upload";
+import catchAsyncError from "../middleware/catchAsyncError";
+import { isVerify } from "../middleware/auth";
 
 // register user
-router.post("/signup", validate(createUserSchema), createUser);
+router.post("/signup", validate(createUserSchema), createUserHandler);
 
 // activate user
-router.post("/activation", catchAsyncError(activation));
+router.post(
+  "/activation",
+  validate(verifyUserSchema),
+  catchAsyncError(userEmailVerificationHandler)
+);
 
 // login user
-router.post("/login", catchAsyncError(loginUser));
+router.post(
+  "/login",
+  validate(loginUserSchema),
+  catchAsyncError(loginUserHandler)
+);
 
 // forgot user password
-router.post("/forgotpassword", catchAsyncError(forgotPassword));
+router.post(
+  "/forgotpassword",
+  validate(forgotPasswordSchema),
+  catchAsyncError(forgotUserPasswordHandler)
+);
 
 // reset user password
 router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
@@ -40,7 +57,7 @@ router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
 router.get("/logout", catchAsyncError(logOutUser));
 
 // retrive user information
-router.get("/getuser", isVerify, catchAsyncError(getUser));
+router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
 
 // update user
 router.put("/profile", isVerify, catchAsyncError(updateUserProfile));

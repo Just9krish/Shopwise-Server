@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build" : "tsc"
   },
   "keywords": [],
   "author": "",

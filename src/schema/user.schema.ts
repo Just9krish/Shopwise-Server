@@ -20,4 +20,40 @@ export const createUserSchema = object({
   }),
 });
 
-export type CreateUserInput = TypeOf<typeof createUserSchema>;
+export type CreateUserInput = Omit<
+  TypeOf<typeof createUserSchema>,
+  "body.passwordConfirmation"
+>;
+
+export const verifyUserSchema = object({
+  body: object({
+    verificationToken: string({
+      required_error: "Verification code is required",
+    }),
+  }),
+});
+
+export type VerifyUserInput = TypeOf<typeof verifyUserSchema>;
+
+export const loginUserSchema = object({
+  body: object({
+    email: string({
+      required_error: "Email is required",
+    }),
+    password: string({
+      required_error: "Password is required",
+    }),
+  }),
+});
+
+export type LoginUserInput = TypeOf<typeof loginUserSchema>;
+
+export const forgotPasswordSchema = object({
+  body: object({
+    email: string({
+      required_error: "Email is required",
+    }),
+  }),
+});
+
+export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>;
