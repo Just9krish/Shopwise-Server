@@ -8,7 +8,9 @@ import logger from "../utils/logger";
 import config from "config";
 import {
   AddUserAdressInput,
+  ChangePasswordInput,
   CreateUserInput,
+  DeleteUserAddressInput,
   ForgotPasswordInput,
   LoginUserInput,
   ResetPasswordInput,
@@ -17,7 +19,9 @@ import {
 } from "../schema/user.schema";
 import {
   addUserAddress,
+  changeUserPassword,
   createUserAndSendVerificationEmail,
+  deleteUserAddress,
   forgotPasswordByUserEmail,
   getUserDetailsById,
   loginUserAndSetCookie,
@@ -241,7 +245,7 @@ export const addUserAdressHandler = async (
       addressType,
     } = req.body;
 
-    const user = addUserAddress(
+    const user = await addUserAddress(
       userId,
       country,
       state,
@@ -254,79 +258,55 @@ export const addUserAdressHandler = async (
 
     res.status(201).json({ message: "Address added successfully", user });
   } catch (error: any) {
-    console.error(error);
-    next(new ErrorHandler(error.message, 500));
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
-// // user can delete address
-// exports.deleteAddress = async (req, res, next) => {
-//   try {
-//     const userId = req.user.id;
+// user can delete address
+export const deleteAddressHandler = async (
+  req: Request<DeleteUserAddressInput["params"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = res.locals.user._id;
+    const addressId = req.params.addressId;
 
-//     const user = await User.findById(userId);
+    const user = await deleteUserAddress(userId, addressId);
 
-//     if (!user) {
-//       return next(new ErrorHandler("User not found", 404));
-//     }
+    res.status(201).json({ message: "Address deleted successfully", user });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
 
-//     const addressId = req.params.addressId;
+// user change password
+export const changeUserPasswordHandler = async (
+  req: Request<{}, {}, ChangePasswordInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = res.locals.user._id;
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-//     const address = user.addresses.find((address) => address._id == addressId);
+    const user = await changeUserPassword(
+      userId,
+      currentPassword,
+      newPassword,
+      confirmNewPassword
+    );
 
-//     if (!address) {
-//       return next(new ErrorHandler("Address not found", 404));
-//     }
-
-//     user.addresses.pull(addressId);
-
-//     await user.save();
-
-//     res.status(201).json({ message: "Address deleted successfully", user });
-//   } catch (error) {
-//     console.error(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
-
-// // user change password
-// exports.changePassword = async (req, res, next) => {
-//   try {
-//     const { oldPassword, newPassword, confirmNewPassword } = req.body;
-
-//     const userId = req.user.id;
-
-//     const user = await User.findById(userId).select("+password");
-
-//     if (!user) {
-//       return next(new ErrorHandler("User not found", 400));
-//     }
-
-//     if (newPassword != confirmNewPassword) {
-//       return next(
-//         new ErrorHandler(
-//           "New password is not match with confrimed password",
-//           400
-//         )
-//       );
-//     }
-//     const isMatch = await user.comparePassword(oldPassword);
-
-//     if (!isMatch) {
-//       return next(new ErrorHandler("Invalid old password", 400));
-//     }
-
-//     user.password = newPassword;
-//     await user.save();
-
-//     res
-//       .status(200)
-//       .json({ success: true, message: "Password updated successfully" });
-//   } catch (error) {
-//     console.error(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
+    res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
 
 // // get all user orders
 // exports.getAllOrdersOfUser = async (req, res, next) => {

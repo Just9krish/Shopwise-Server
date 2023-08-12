@@ -155,3 +155,35 @@ export const addUserAdressSchema = object({
 });
 
 export type AddUserAdressInput = TypeOf<typeof addUserAdressSchema>;
+
+export const deleteUserAddressSchema = object({
+  params: object({
+    addressId: string({
+      required_error: "Address id is required.",
+    }),
+  }),
+});
+
+export type DeleteUserAddressInput = TypeOf<typeof deleteUserAddressSchema>;
+
+export const changeUserPasswordSchema = object({
+  body: object({
+    currentPassword: string({
+      required_error: "Current password is required.",
+    }),
+    newPassword: string({
+      required_error: "New password is required.",
+    }).regex(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long."
+    ),
+    confirmNewPassword: string({
+      required_error: "Confirm new password is required.",
+    }),
+  }).refine((data) => data.newPassword === data.newPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  }),
+});
+
+export type ChangePasswordInput = TypeOf<typeof changeUserPasswordSchema>;

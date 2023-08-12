@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 import { genSalt, compare, hashSync } from "bcrypt";
 import { sign } from "jsonwebtoken";
 import config from "config";
@@ -9,7 +9,8 @@ export interface UserInput {
   email: string;
 }
 
-export interface UserAddressDocument {
+export interface UserAddressInput {
+  _id?: Document["_id"];
   country: string;
   state: string;
   address1: string;
@@ -22,7 +23,7 @@ export interface UserAddressDocument {
 export interface UserDocument extends UserInput, Document {
   primaryPhoneNumber?: number;
   secondaryPhoneNumber?: number;
-  addresses: UserAddressDocument[];
+  addresses: UserAddressInput[];
   role?: string;
   avatar?: string;
   isEmailVerified?: boolean;

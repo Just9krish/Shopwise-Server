@@ -1,6 +1,7 @@
 import validate from "../middleware/validateResource";
 import {
   addUserAdressSchema,
+  changeUserPasswordSchema,
   createUserSchema,
   forgotPasswordSchema,
   loginUserSchema,
@@ -22,6 +23,8 @@ import {
   updateUserProfileHandler,
   updateUserProfilePictureHandler,
   addUserAdressHandler,
+  deleteAddressHandler,
+  changeUserPasswordHandler,
 } from "../controllers/user.controller";
 import upload from "../upload";
 import catchAsyncError from "../middleware/catchAsyncError";
@@ -89,11 +92,16 @@ router.post(
   catchAsyncError(addUserAdressHandler)
 );
 
-// // delete user address
-// router.delete("/address/:addressId", isVerify, catchAsyncError(deleteAddress));
+// delete user address
+router.delete("/address/:addressId", isVerify, deleteAddressHandler);
 
-// // user password change
-// router.post("/password-change", isVerify, catchAsyncError(changePassword));
+// user password change
+router.post(
+  "/password-change",
+  isVerify,
+  validate(changeUserPasswordSchema),
+  catchAsyncError(changeUserPasswordHandler)
+);
 
 // // get all user order
 // router.get("/:userId/orders", isVerify, catchAsyncError(getAllOrdersOfUser));

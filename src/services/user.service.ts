@@ -272,7 +272,6 @@ export const updateUserProfileImage = async (
     }
 
     const existingPath = path.resolve(`uploads/${existingUser.avatar}`);
-    console.log(existingPath);
 
     // Remove the existing profile picture
     fs.unlinkSync(existingPath);
@@ -301,7 +300,7 @@ export const addUserAddress = async (
     const user = await User.findById(userId);
 
     if (!user) {
-      throw new Error("User not found");
+      throw new ErrorHandler("User not found", 404);
     }
 
     const sameTypeAddress = user.addresses.find(
@@ -309,7 +308,7 @@ export const addUserAddress = async (
     );
 
     if (sameTypeAddress) {
-      throw new Error(`${addressType} already exists`);
+      throw new ErrorHandler(`${addressType} already exists`, 400);
     }
 
     user.addresses.push({
@@ -322,10 +321,58 @@ export const addUserAddress = async (
       addressType,
     });
 
-    await user.save();
+    return await user.save();
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
 
-    return user;
-  } catch (error) {
-    throw error;
+export const deleteUserAddress = async (userId: string, addressId: string) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const addressIndex = user.addresses.findIndex(
+      (address) => address._id.toString() === addressId
+    );
+
+    if (addressIndex === -1) {
+      throw new ErrorHandler("Address not found", 404);
+    }
+
+    user.addresses.splice(addressIndex, 1);
+
+    return await user.save();
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
+
+export const changeUserPassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+  confirmNewPassword: string
+): Promise<void> => {
+  try {
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      throw new ErrorHandler("User not found", 404);
+    }
+
+    const isMatch = await user.comparePassword(oldPassword);
+
+    if (!isMatch) {
+      throw new ErrorHandler("Invalid old password", 400);
+    }
+
+    user.password = newPassword;
+    await user.save();
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 };
