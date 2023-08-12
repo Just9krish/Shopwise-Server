@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import path from "path";
-import fs from "fs";
 import User from "../models/user.model";
 import Order from "../models/order.model";
 import Token from "../models/usertoken.model";
@@ -9,24 +7,29 @@ import sendToken from "../utils/jwtToken";
 import logger from "../utils/logger";
 import config from "config";
 import {
+  AddUserAdressInput,
   CreateUserInput,
   ForgotPasswordInput,
   LoginUserInput,
   ResetPasswordInput,
+  UpdateUserProfileInput,
   VerifyUserInput,
 } from "../schema/user.schema";
 import {
+  addUserAddress,
   createUserAndSendVerificationEmail,
   forgotPasswordByUserEmail,
   getUserDetailsById,
   loginUserAndSetCookie,
   resetUserPassword,
+  updateUserProfile,
+  updateUserProfileImage,
   verifyUserEmail,
 } from "../services/user.service";
 
-interface AuthenticatedRequest extends Request {
-  user: { id: string }; // Define the user property with the appropriate type
-}
+// interface AuthenticatedRequest extends Request {
+//   user: { id: string }; // Define the user property with the appropriate type
+// }
 
 // const CLIENT_DOMAIN =
 //   config.get<string>("nodeEnv") === "PRODUCTION"
@@ -92,25 +95,25 @@ export const loginUserHandler = async (
     sendToken(user, 200, res);
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler(error.message, 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
 // get user information
 export const getUserHandler = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const userId = req.user.id;
+    const userId = res.locals.user._id;
 
     const user = await getUserDetailsById(userId);
 
     res.status(200).json({ success: true, user });
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler(error.message, 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
@@ -128,13 +131,13 @@ export const forgotUserPasswordHandler = async (
     res.status(200).json({ message: "Password Reset Email Sent" });
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler(error.message, 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
 // reset user password
-export const resetPassword = async (
-  req: Request<{ resetToken: string }, {}, ResetPasswordInput["body"]>,
+export const resetPasswordHandler = async (
+  req: Request<ResetPasswordInput["params"], {}, ResetPasswordInput["body"]>,
   res: Response,
   next: NextFunction
 ) => {
@@ -149,110 +152,112 @@ export const resetPassword = async (
       .json({ message: "Password Reset Successful, please login" });
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler(error.message, 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
-// // update user profile
-// exports.updateUserProfile = async (req, res, next) => {
-//   try {
-//     const userId = req.user.id;
-//     const { email, password, primaryPhoneNumber, secondaryPhoneNumber, name } =
-//       req.body;
+// log out user
+export const logOutUserHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
 
-//     const user = await User.findById(userId).select("+password");
+    res.status(201).json({ success: true, message: "Log out Successful!" });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
 
-//     if (!user) {
-//       return next(new ErrorHandler("User not found", 404));
-//     }
+// update user profile
+export const updateUserProfileHandler = async (
+  req: Request<{}, {}, UpdateUserProfileInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = res.locals.user._id;
+    const { email, password, primaryPhoneNumber, secondaryPhoneNumber, name } =
+      req.body;
 
-//     const isPasswordValid = await user.comparePassword(password);
+    const user = await updateUserProfile({
+      userId,
+      email,
+      password,
+      primaryPhoneNumber,
+      secondaryPhoneNumber,
+      name,
+    });
 
-//     if (!isPasswordValid) {
-//       return next(new ErrorHandler("Enter Correct Password", 400));
-//     }
+    res.status(200).json({ success: true, user });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
 
-//     user.name = name;
-//     user.email = email;
-//     user.primaryPhoneNumber = primaryPhoneNumber;
-//     user.secondaryPhoneNumber = secondaryPhoneNumber;
+// update user profile picture
+export const updateUserProfilePictureHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = res.locals.user._id;
+    const file = req.file!;
 
-//     await user.save();
+    console.log(file);
 
-//     res.status(201).json({ success: true, user });
-//   } catch (error) {
-//     console.log(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
+    const user = await updateUserProfileImage(userId, file);
 
-// // update user profile picture
-// exports.updateUserProfilePicture = async (req, res, next) => {
-//   try {
-//     const userId = req.user.id;
+    res.status(201).json({ success: true, user });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
 
-//     const existingUser = await User.findById(userId);
+// add user address
+export const addUserAdressHandler = async (
+  req: Request<{}, {}, AddUserAdressInput["body"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = res.locals.user._id;
+    const {
+      country,
+      state,
+      address1,
+      address2,
+      address3,
+      zipcode,
+      addressType,
+    } = req.body;
 
-//     const existingPath = `uploads/${existingUser.avatar}`;
-//     fs.unlinkSync(existingPath);
-//     const filepath = path.join(req.file.filename);
+    const user = addUserAddress(
+      userId,
+      country,
+      state,
+      address1,
+      address2,
+      address3,
+      zipcode,
+      addressType
+    );
 
-//     const user = await User.findByIdAndUpdate(userId, { avatar: filepath });
-
-//     res.status(201).json({ success: true, user });
-//   } catch (error) {
-//     console.log(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
-
-// // add user address
-// exports.addUserAdress = async (req, res, next) => {
-//   try {
-//     const {
-//       country,
-//       state,
-//       address1,
-//       address2,
-//       address3,
-//       zipcode,
-//       addressType,
-//     } = req.body;
-
-//     const userId = req.user.id;
-
-//     const user = await User.findById(userId);
-
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     const sameTypeAdress = user.addresses.find(
-//       (address) => address.addressType === addressType
-//     );
-
-//     if (sameTypeAdress) {
-//       return next(new ErrorHandler(`${addressType} already exists`, 400));
-//     }
-
-//     user.addresses.push({
-//       country,
-//       state,
-//       address1,
-//       address2,
-//       address3,
-//       zipcode,
-//       addressType,
-//     });
-
-//     await user.save();
-
-//     res.status(201).json({ message: "Address added successfully", user });
-//   } catch (error) {
-//     console.error(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
+    res.status(201).json({ message: "Address added successfully", user });
+  } catch (error: any) {
+    console.error(error);
+    next(new ErrorHandler(error.message, 500));
+  }
+};
 
 // // user can delete address
 // exports.deleteAddress = async (req, res, next) => {
@@ -319,21 +324,6 @@ export const resetPassword = async (
 //       .json({ success: true, message: "Password updated successfully" });
 //   } catch (error) {
 //     console.error(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
-
-// // log out user
-// exports.logOutUser = async (req, res, next) => {
-//   try {
-//     res.cookie("token", null, {
-//       expires: new Date(Date.now()),
-//       httpOnly: true,
-//     });
-
-//     res.status(201).json({ success: true, message: "Log out Successful!" });
-//   } catch (error) {
-//     console.log(error);
 //     next(new ErrorHandler(error.message, 500));
 //   }
 // };

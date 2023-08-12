@@ -1,4 +1,5 @@
 import User, { UserInput } from "../models/user.model";
+import fs from "fs";
 import Token from "../models/usertoken.model";
 import { hashToken, creatVerificationToken } from "../utils/hashToken";
 import sendMail from "./mail.service";
@@ -9,11 +10,21 @@ import {
   findVerificationToken,
   saveVerificationToken,
 } from "./userToken.service";
+import path from "path";
 
 const CLIENT_DOMAIN =
   process.env.NODE_ENV === "PRODUCTION"
     ? process.env.CLIENT_DOMAIN_PROD
     : process.env.CLIENT_DOMAIN_DEV;
+
+interface UpdateUserProfileInput {
+  userId: string;
+  email: string;
+  password: string;
+  primaryPhoneNumber: number;
+  secondaryPhoneNumber: number;
+  name: string;
+}
 
 export async function createUserAndSendVerificationEmail(input: UserInput) {
   try {
@@ -123,9 +134,9 @@ export async function loginUserAndSetCookie(input: {
     }
 
     return user;
-  } catch (error) {
+  } catch (error: any) {
     logger.error(error);
-    throw new ErrorHandler("Failed to login user", 500);
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
@@ -214,3 +225,107 @@ export async function resetUserPassword(token: string, newPassword: string) {
     throw new ErrorHandler("Failed to reset password", 500);
   }
 }
+
+export const updateUserProfile = async ({
+  userId,
+  email,
+  password,
+  primaryPhoneNumber,
+  secondaryPhoneNumber,
+  name,
+}: UpdateUserProfileInput) => {
+  try {
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      throw new ErrorHandler("User not found", 404);
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      throw new ErrorHandler("Enter Correct Password", 400);
+    }
+
+    user.name = name;
+    user.email = email;
+    user.primaryPhoneNumber = primaryPhoneNumber;
+    user.secondaryPhoneNumber = secondaryPhoneNumber;
+
+    await user.save();
+
+    return user;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
+
+export const updateUserProfileImage = async (
+  userId: string,
+  file: Express.Multer.File
+) => {
+  try {
+    const existingUser = await User.findById(userId);
+
+    if (!existingUser) {
+      throw new ErrorHandler("User not found", 404);
+    }
+
+    const existingPath = path.resolve(`uploads/${existingUser.avatar}`);
+    console.log(existingPath);
+
+    // Remove the existing profile picture
+    fs.unlinkSync(existingPath);
+
+    const user = await User.findByIdAndUpdate(userId, {
+      avatar: file.filename,
+    });
+
+    return user;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
+
+export const addUserAddress = async (
+  userId: string,
+  country: string,
+  state: string,
+  address1: string,
+  address2: string,
+  address3: string,
+  zipcode: number,
+  addressType: string
+) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const sameTypeAddress = user.addresses.find(
+      (address) => address.addressType === addressType
+    );
+
+    if (sameTypeAddress) {
+      throw new Error(`${addressType} already exists`);
+    }
+
+    user.addresses.push({
+      country,
+      state,
+      address1,
+      address2,
+      address3,
+      zipcode,
+      addressType,
+    });
+
+    await user.save();
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};

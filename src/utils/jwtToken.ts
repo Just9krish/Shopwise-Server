@@ -12,7 +12,7 @@ const sendToken = (user: UserDocument, statusCode: number, res: Response) => {
   res
     .status(statusCode)
     .cookie("token", token, options)
-    .json({ success: true, user, token });
+    .json({ success: true, token });
 };
 
 export default sendToken;

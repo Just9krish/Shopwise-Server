@@ -1,8 +1,12 @@
 import validate from "../middleware/validateResource";
 import {
+  addUserAdressSchema,
   createUserSchema,
   forgotPasswordSchema,
   loginUserSchema,
+  resetPasswordSchema,
+  updateUserProfileImageSchema,
+  updateUserProfileSchema,
   verifyUserSchema,
 } from "../schema/user.schema";
 
@@ -12,7 +16,12 @@ import {
   userEmailVerificationHandler,
   loginUserHandler,
   getUserHandler,
+  logOutUserHandler,
   forgotUserPasswordHandler,
+  resetPasswordHandler,
+  updateUserProfileHandler,
+  updateUserProfilePictureHandler,
+  addUserAdressHandler,
 } from "../controllers/user.controller";
 import upload from "../upload";
 import catchAsyncError from "../middleware/catchAsyncError";
@@ -42,28 +51,43 @@ router.post(
   catchAsyncError(forgotUserPasswordHandler)
 );
 
-// // reset user password
-// router.post("/resetpassword/:resetToken", catchAsyncError(resetPassword));
+// reset user password
+router.post(
+  "/resetpassword/:resetToken",
+  validate(resetPasswordSchema),
+  resetPasswordHandler
+);
 
-// // logout user
-// router.get("/logout", catchAsyncError(logOutUser));
+// logout user
+router.get("/logout", catchAsyncError(logOutUserHandler));
 
-// // retrive user information
-// router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
+// retrive user information
+router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
 
-// // update user
-// router.put("/profile", isVerify, catchAsyncError(updateUserProfile));
+// update user
+router.put(
+  "/profile",
+  isVerify,
+  validate(updateUserProfileSchema),
+  catchAsyncError(updateUserProfileHandler)
+);
 
-// // update profile picture
-// router.put(
-//   "/avatar",
-//   isVerify,
-//   upload.single("file"),
-//   catchAsyncError(updateUserProfilePicture)
-// );
+// update profile picture
+router.put(
+  "/avatar",
+  isVerify,
+  upload.single("file"),
+  validate(updateUserProfileImageSchema),
+  catchAsyncError(updateUserProfilePictureHandler)
+);
 
-// // add address of user
-// router.post("/address", isVerify, catchAsyncError(addUserAdress));
+// add address of user
+router.post(
+  "/address",
+  isVerify,
+  validate(addUserAdressSchema),
+  catchAsyncError(addUserAdressHandler)
+);
 
 // // delete user address
 // router.delete("/address/:addressId", isVerify, catchAsyncError(deleteAddress));

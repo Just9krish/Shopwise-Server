@@ -22,7 +22,7 @@ export interface UserAddressDocument {
 export interface UserDocument extends UserInput, Document {
   primaryPhoneNumber?: number;
   secondaryPhoneNumber?: number;
-  addresses?: UserAddressDocument[];
+  addresses: UserAddressDocument[];
   role?: string;
   avatar?: string;
   isEmailVerified?: boolean;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "config";
 import ErrorHandler from "../utils/errorHandler";
 import catchAsyncError from "./catchAsyncError";
@@ -19,13 +19,17 @@ export const isVerify = catchAsyncError(
 
     try {
       const decoded: any = jwt.verify(token, jwtSecret);
+      console.log(decoded);
       const user = await User.findById(decoded.id);
 
-      req.user = { _id: user?._id.toString() };
-
-      next();
+      if (user) {
+        res.locals.user = { _id: user?._id };
+        next();
+      } else {
+        return next(new ErrorHandler("Unauthorized", 401));
+      }
     } catch (error) {
-      return next(new ErrorHandler("Invalid token", 401));
+      return next(new ErrorHandler("Unauthorized", 401));
     }
   }
 );
@@ -40,8 +44,15 @@ export const isSeller = catchAsyncError(
 
     try {
       const decoded: any = jwt.verify(seller_token, jwtSecret);
-      req.seller = await Shop.findById(decoded.id);
-      next();
+
+      const shop = await Shop.findById(decoded.id);
+
+      if (shop) {
+        res.locals.shop = { _id: shop._id };
+        next();
+      } else {
+        return next(new ErrorHandler("Unauthorized", 401));
+      }
     } catch (error) {
       return next(new ErrorHandler("Invalid seller token", 401));
     }
