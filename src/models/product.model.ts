@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { ShopDocument } from "./shop.model";
 
 export interface ProductDocument extends Document {
   name: string;
@@ -10,7 +11,7 @@ export interface ProductDocument extends Document {
   discount_price?: number;
   stock: number;
   images: any[];
-  shop: mongoose.Schema.Types.ObjectId;
+  shop: ShopDocument["_id"];
   sold_out: number;
   createdAt: Date;
   updatedAt: Date;

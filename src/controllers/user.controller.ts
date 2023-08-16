@@ -81,7 +81,7 @@ export const userEmailVerificationHandler = async (
     sendToken(user, 200, res);
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler("Something went wrong", 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 
@@ -244,6 +244,8 @@ export const addUserAdressHandler = async (
       zipcode,
       addressType,
     } = req.body;
+
+    console.log(req.body);
 
     const user = await addUserAddress(
       userId,

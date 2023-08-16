@@ -1,33 +1,33 @@
-import UserToken from "../models/usertoken.model";
+import ShopToken from "../models/shoptoken.model";
 import ErrorHandler from "../utils/errorHandler";
 import logger from "../utils/logger";
 
-const saveVerificationToken = async (userId: string, hashedToken: string) => {
+const saveVerificationToken = async (shopId: string, hashedToken: string) => {
   try {
-    const userToken = await UserToken.create({
-      userId: userId,
+    const shopToken = await ShopToken.create({
+      shopId: shopId,
       vToken: hashedToken,
       createdAt: Date.now(),
       expiresAt: Date.now() + 60 * (60 * 1000),
     });
 
-    return userToken;
+    return shopToken;
   } catch (error: any) {
     logger.error(error);
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 };
 
-const saveResetToken = async (userId: string, hashedToken: string) => {
+const saveResetToken = async (shopId: string, hashedToken: string) => {
   try {
-    const userToken = await UserToken.create({
-      userId: userId,
+    const shopToken = await ShopToken.create({
+      shopId: shopId,
       rToken: hashedToken,
       createdAt: Date.now(),
       expiresAt: Date.now() + 60 * (60 * 1000),
     });
 
-    return userToken;
+    return shopToken;
   } catch (error: any) {
     logger.error(error);
     throw new ErrorHandler(error.message, error.statusCode || 500);
@@ -36,12 +36,12 @@ const saveResetToken = async (userId: string, hashedToken: string) => {
 
 const findVerificationToken = async (vHashedToken: string) => {
   try {
-    const userToken = await UserToken.findOne({
+    const shopToken = await ShopToken.findOne({
       vToken: vHashedToken,
       expiresAt: { $gt: Date.now() },
     });
 
-    return userToken;
+    return shopToken;
   } catch (error: any) {
     logger.error(error);
     throw new ErrorHandler("Invalid or Expired token", 400);
@@ -50,23 +50,23 @@ const findVerificationToken = async (vHashedToken: string) => {
 
 const findResetToken = async (vHashedToken: string) => {
   try {
-    const userToken = await UserToken.findOne({
+    const shopToken = await ShopToken.findOne({
       rToken: vHashedToken,
       expiresAt: { $gt: Date.now() },
     });
 
-    return userToken;
+    return shopToken;
   } catch (error: any) {
     logger.error(error);
     throw new ErrorHandler("Invalid or Expired token", 400);
   }
 };
 
-const findOneAndDeleteUserToken = async (userId: string) => {
+const findOneAndDeleteShopToken = async (shopId: string) => {
   try {
-    const userToken = await UserToken.findOneAndDelete({ userId: userId });
+    const shopToken = await ShopToken.findOneAndDelete({ shopId: shopId });
 
-    return userToken;
+    return shopToken;
   } catch (error: any) {
     logger.error(error);
     throw new ErrorHandler(error.message, error.statusCode || 500);
@@ -76,7 +76,7 @@ const findOneAndDeleteUserToken = async (userId: string) => {
 export {
   saveVerificationToken,
   findVerificationToken,
-  findOneAndDeleteUserToken,
+  findOneAndDeleteShopToken,
   findResetToken,
   saveResetToken,
 };

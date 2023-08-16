@@ -9,8 +9,6 @@ import "dotenv/config";
 
 // Create Express app
 const app = express();
-console.log(process.env.NODE_ENV);
-
 // const nodeEnv = config.get<string>("nodeEnv");
 
 const nodeEnviroment = process.env.NODE_ENV;
@@ -48,7 +46,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
 // Import routes
 import userRoutes from "./routes/user.routes";
-// import shopRoutes from "./routes/shop.routes";
+import shopRoutes from "./routes/shop.routes";
 // const productRoutes = require("./routes/product.routes");
 // const couponRoutes = require("./routes/coupons.routes");
 // const paymentRoutes = require("./routes/payment.routes");
@@ -59,7 +57,7 @@ import userRoutes from "./routes/user.routes";
 
 // Routes
 app.use("/api/v2/users", userRoutes);
-// app.use("/api/v2/shops", shopRoutes);
+app.use("/api/v2/shops", shopRoutes);
 // app.use("/api/v2/coupons", couponRoutes);
 // app.use("/api/v2/products", productRoutes);
 // app.use("/api/v2/payments", paymentRoutes);

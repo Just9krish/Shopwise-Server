@@ -10,6 +10,7 @@ const validate =
         query: req.query,
         params: req.params,
         file: req.file,
+        files: req.files,
       });
       next();
     } catch (error: any) {

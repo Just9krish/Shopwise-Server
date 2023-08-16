@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const creatVerificationToken = (userId: string): string => {
+const createToken = (userId: string): string => {
   return crypto.randomBytes(32).toString("hex") + userId;
 };
 
@@ -8,4 +8,4 @@ const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token.toString()).digest("hex");
 };
 
-export { hashToken, creatVerificationToken };
+export { hashToken, createToken };

@@ -19,7 +19,6 @@ export const isVerify = catchAsyncError(
 
     try {
       const decoded: any = jwt.verify(token, jwtSecret);
-      console.log(decoded);
       const user = await User.findById(decoded.id);
 
       if (user) {
@@ -28,8 +27,8 @@ export const isVerify = catchAsyncError(
       } else {
         return next(new ErrorHandler("Unauthorized", 401));
       }
-    } catch (error) {
-      return next(new ErrorHandler("Unauthorized", 401));
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, error.statusCode));
     }
   }
 );
@@ -38,6 +37,7 @@ export const isSeller = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { seller_token } = req.cookies;
 
+    console.log(seller_token);
     if (!seller_token) {
       return next(new ErrorHandler("Please login to continue", 400));
     }
@@ -53,8 +53,8 @@ export const isSeller = catchAsyncError(
       } else {
         return next(new ErrorHandler("Unauthorized", 401));
       }
-    } catch (error) {
-      return next(new ErrorHandler("Invalid seller token", 401));
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, error.statusCode));
     }
   }
 );

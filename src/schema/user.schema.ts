@@ -21,18 +21,18 @@ export const createUserSchema = object({
       /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
       "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long."
     ),
-    passwordConfirmation: string({
+    confirmPassword: string({
       required_error: "Password confirmation is required.",
     }),
-  }).refine((data) => data.password === data.passwordConfirmation, {
+  }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
-    path: ["passwordConfirmation"],
+    path: ["confirmPassword"],
   }),
 });
 
 export type CreateUserInput = Omit<
   TypeOf<typeof createUserSchema>,
-  "body.passwordConfirmation"
+  "body.confirmPassword"
 >;
 
 export const verifyUserSchema = object({

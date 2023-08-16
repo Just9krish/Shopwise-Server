@@ -72,6 +72,8 @@ const shopSchema = new Schema<ShopDocument>(
   { timestamps: true }
 );
 
+const SALT_WORK_FACTOR = +process.env.SALT_WORK_FACTOR!;
+
 // Hash password
 shopSchema.pre<ShopDocument>("save", async function (next) {
   const shop = this as ShopDocument;
@@ -80,15 +82,19 @@ shopSchema.pre<ShopDocument>("save", async function (next) {
     return next();
   }
 
-  const salt = await genSalt(config.get<number>("saltWorkFactor"));
+  const salt = await genSalt(SALT_WORK_FACTOR);
 
   shop.password = await hashSync(shop.password, salt);
 });
 
+// const JWT_SECRET = config.get<string>("jwtSecret");
+const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_EXPIRE_TIME = process.env.JWT_EXPIRE;
+
 // jwt token
 shopSchema.methods.getJwtToken = function (): string {
-  return jwt.sign({ id: this._id }, config.get<string>("jwtSecret"), {
-    expiresIn: config.get<string>("jwtExpiration"),
+  return jwt.sign({ id: this._id }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRE_TIME,
   });
 };
 

@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { ShopDocument } from "./shop.model";
 
 export interface EventDocument extends Document {
   name: string;
@@ -9,11 +10,11 @@ export interface EventDocument extends Document {
   status: string;
   tags: string;
   price: number;
-  discount_percentage?: number;
-  discount_price?: number;
+  discount_percentage: number;
+  discount_price: number;
   stock: number;
   images: string[];
-  shop: mongoose.Schema.Types.ObjectId;
+  shop: ShopDocument["_id"];
   sold_out: number;
   createdAt: Date;
   updatedAt: Date;
@@ -50,8 +51,11 @@ const eventSchema = new Schema<EventDocument>(
       type: Number,
       required: [true, "Please enter event product price!"],
     },
-    discount_percentage: Number,
-    discount_price: Number,
+    discount_percentage: {
+      type: Number,
+      require: true,
+    },
+    discount_price: { type: Number, required: true },
     stock: {
       type: Number,
       required: [true, "Please enter event the stock of product"],

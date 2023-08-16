@@ -1,13 +1,14 @@
 import User, { UserInput } from "../models/user.model";
 import fs from "fs";
-import Token from "../models/usertoken.model";
-import { hashToken, creatVerificationToken } from "../utils/hashToken";
+import { hashToken, createToken } from "../utils/hashToken";
 import sendMail from "./mail.service";
 import ErrorHandler from "../utils/errorHandler";
 import logger from "../utils/logger";
 import {
   findOneAndDeleteUserToken,
+  findResetToken,
   findVerificationToken,
+  saveResetToken,
   saveVerificationToken,
 } from "./userToken.service";
 import path from "path";
@@ -45,7 +46,7 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
     // Delete Token if it exists in DB
     const token = await findOneAndDeleteUserToken(user._id);
 
-    const verificationToken = creatVerificationToken(user._id);
+    const verificationToken = createToken(user._id);
 
     const hashedToken = hashToken(verificationToken);
 
@@ -75,9 +76,9 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
       success: true,
       message: "Verification Email Sent",
     };
-  } catch (error) {
+  } catch (error: any) {
     logger.error(error);
-    throw new ErrorHandler("Failed to create user", 500);
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
@@ -135,7 +136,6 @@ export async function loginUserAndSetCookie(input: {
 
     return user;
   } catch (error: any) {
-    logger.error(error);
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
@@ -149,9 +149,8 @@ export async function getUserDetailsById(userId: string) {
     }
 
     return user;
-  } catch (error) {
-    logger.error(error);
-    throw new ErrorHandler("Failed to get user details", 500);
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
@@ -166,13 +165,13 @@ export async function forgotPasswordByUserEmail(email: string) {
     const token = await findOneAndDeleteUserToken(user._id);
 
     // Create a new token
-    const resetToken = creatVerificationToken(user._id);
+    const resetToken = createToken(user._id);
 
     // Hash token
     const hashedToken = hashToken(resetToken);
 
     // Saving token
-    await saveVerificationToken(user._id, hashedToken);
+    await saveResetToken(user._id, hashedToken);
 
     const resetUrl = `${CLIENT_DOMAIN}/resetPassword/${resetToken}`;
 
@@ -196,8 +195,8 @@ export async function forgotPasswordByUserEmail(email: string) {
       link,
       logoUrl
     );
-  } catch (error) {
-    throw new ErrorHandler("Something went wrong", 500);
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
@@ -205,7 +204,7 @@ export async function resetUserPassword(token: string, newPassword: string) {
   try {
     const hashedToken = hashToken(token);
 
-    const userToken = await findVerificationToken(hashedToken);
+    const userToken = await findResetToken(hashedToken);
 
     if (!userToken) {
       throw new ErrorHandler("Invalid or Expired Token", 404);
@@ -220,9 +219,8 @@ export async function resetUserPassword(token: string, newPassword: string) {
     user.password = newPassword;
 
     return await user.save();
-  } catch (error) {
-    logger.error(error);
-    throw new ErrorHandler("Failed to reset password", 500);
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
