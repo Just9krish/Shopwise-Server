@@ -19,6 +19,7 @@ import {
   GetShopAllProductsInput,
   LoginShopInput,
   VerifyShopInput,
+  UpdateOrderStatusInput,
 } from "../schema/shop.schema";
 import {
   createCouponCode,
@@ -318,8 +319,12 @@ export const getShopAllOrdersHandler = async (
 };
 
 // update order status
-exports.updateOrderStatus = async (
-  req: Request,
+export const updateOrderStatusHandler = async (
+  req: Request<
+    UpdateOrderStatusInput["params"],
+    {},
+    UpdateOrderStatusInput["body"]
+  >,
   res: Response,
   next: NextFunction
 ) => {

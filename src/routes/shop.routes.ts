@@ -15,6 +15,7 @@ import {
   getShopDetailsHanlder,
   logOutShopHandler,
   shopLoginHandler,
+  updateOrderStatusHandler,
   verifyShopHanlder,
 } from "../controllers/shop.controller";
 import {
@@ -27,6 +28,7 @@ import {
   deleteShopSingleProductSchema,
   getShopAllProductsSchema,
   loginShopSchema,
+  updateOrderStatusSchema,
   verifyShopSchema,
 } from "../schema/shop.schema";
 
@@ -108,7 +110,12 @@ router.delete(
 // get all shop orders
 router.get("/:shopId/orders", isSeller, getShopAllOrdersHandler);
 
-// // update shop order status
-// router.put("/:shopId/orders/:orderId", isSeller, updateOrderStatus);
+// update shop order status
+router.put(
+  "/:shopId/orders/:orderId",
+  isSeller,
+  validate(updateOrderStatusSchema),
+  updateOrderStatusHandler
+);
 
 export default router;

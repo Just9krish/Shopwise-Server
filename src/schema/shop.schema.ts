@@ -1,5 +1,4 @@
-import { type } from "os";
-import { TypeOf, array, date, number, object, string } from "zod";
+import { TypeOf, z, array, date, number, object, string } from "zod";
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -224,4 +223,22 @@ export const deleteCouponScheama = object({
 
 export type DeleteCouponInput = TypeOf<typeof deleteCouponScheama>;
 
-export const;
+enum STATUS {
+  Processing = "Processing",
+  Shipped = "Shipped",
+  Delivered = "Delivered",
+  Cancelled = "Cancelled",
+}
+
+export const updateOrderStatusSchema = object({
+  params: object({
+    orderId: string({
+      required_error: "Order id is required.",
+    }),
+  }),
+  body: z.object({
+    orderStatus: z.nativeEnum(STATUS),
+  }),
+});
+
+export type UpdateOrderStatusInput = TypeOf<typeof updateOrderStatusSchema>;
