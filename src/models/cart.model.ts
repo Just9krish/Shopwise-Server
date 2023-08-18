@@ -1,16 +1,18 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { ProductDocument } from "./product.model";
+import { UserDocument } from "./user.model";
 
 export interface CartItem {
-  product: mongoose.Schema.Types.ObjectId;
+  product: ProductDocument["_id"];
   quantity: number;
 }
 
 export interface CartDocument extends Document {
-  user: mongoose.Schema.Types.ObjectId;
+  user: UserDocument["_id"];
   items: CartItem[];
   totalPrice: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const cartItemSchema = new Schema<CartItem>({

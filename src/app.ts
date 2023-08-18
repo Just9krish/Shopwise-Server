@@ -47,24 +47,24 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 // Import routes
 import userRoutes from "./routes/user.routes";
 import shopRoutes from "./routes/shop.routes";
-// const productRoutes = require("./routes/product.routes");
+import productRoutes from "./routes/product.routes";
 // const couponRoutes = require("./routes/coupons.routes");
 // const paymentRoutes = require("./routes/payment.routes");
 // const orderRoutes = require("./routes/order.routes");
-// const eventRoutes = require("./routes/event.routes");
-// const cartRoutes = require("./routes/cart.routes");
-// const wishlistRoutes = require("./routes/wishlist.routes");
+import eventRoutes from "./routes/event.routes";
+import cartRoutes from "./routes/cart.routes";
+import wishlistRoutes from "./routes/wishlist.routes";
 
 // Routes
 app.use("/api/v2/users", userRoutes);
 app.use("/api/v2/shops", shopRoutes);
 // app.use("/api/v2/coupons", couponRoutes);
-// app.use("/api/v2/products", productRoutes);
+app.use("/api/v2/products", productRoutes);
 // app.use("/api/v2/payments", paymentRoutes);
 // app.use("/api/v2/orders", orderRoutes);
-// app.use("/api/v2/events", eventRoutes);
-// app.use("/api/v2/cart", cartRoutes);
-// app.use("/api/v2/wishlist", wishlistRoutes);
+app.use("/api/v2/events", eventRoutes);
+app.use("/api/v2/cart", cartRoutes);
+app.use("/api/v2/wishlist", wishlistRoutes);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {

@@ -1,7 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../models/user.model";
-import Order from "../models/order.model";
-import Token from "../models/usertoken.model";
 import ErrorHandler from "../utils/errorHandler";
 import sendToken from "../utils/jwtToken";
 import logger from "../utils/logger";
@@ -30,10 +27,6 @@ import {
   updateUserProfileImage,
   verifyUserEmail,
 } from "../services/user.service";
-
-// interface AuthenticatedRequest extends Request {
-//   user: { id: string }; // Define the user property with the appropriate type
-// }
 
 // const CLIENT_DOMAIN =
 //   config.get<string>("nodeEnv") === "PRODUCTION"
