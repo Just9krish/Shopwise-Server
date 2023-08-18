@@ -1,4 +1,4 @@
-function formattedPrice(amount) {
+function formattedPrice(amount: number) {
   return Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -6,4 +6,4 @@ function formattedPrice(amount) {
   }).format(amount / 100);
 }
 
-module.exports = formattedPrice;
+export default formattedPrice;

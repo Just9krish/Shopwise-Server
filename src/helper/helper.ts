@@ -25,6 +25,6 @@ export function decodeActivationToken(encodedString: string): object {
   return decodedUser;
 }
 
-exports.getCartItemPrice = (item: any) => {
+export const getCartItemPrice = (item: any) => {
   return item.discount_percentage > 0 ? item.discount_price : item.price;
 };
