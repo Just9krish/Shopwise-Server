@@ -56,7 +56,7 @@ export const createUserHandler = async (
     res.status(201).json(result);
   } catch (error: any) {
     logger.error(error);
-    return next(new ErrorHandler("Something went wrong", 500));
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
 

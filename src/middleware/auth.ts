@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import config from "config";
 import ErrorHandler from "../utils/errorHandler";
 import catchAsyncError from "./catchAsyncError";
@@ -18,7 +18,10 @@ export const isVerify = catchAsyncError(
     }
 
     try {
+      console.log(token);
       const decoded: any = jwt.verify(token, jwtSecret);
+      console.log(decoded);
+
       const user = await User.findById(decoded.id);
 
       if (user) {

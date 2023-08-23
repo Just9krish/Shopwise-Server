@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import config from "config";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
@@ -67,7 +67,7 @@ app.use("/api/v2/cart", cartRoutes);
 app.use("/api/v2/wishlist", wishlistRoutes);
 
 // Catch-all route handler for unmatched routes
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     success: false,
     message: "Route Not Found",

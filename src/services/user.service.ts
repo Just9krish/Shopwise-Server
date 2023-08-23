@@ -34,7 +34,7 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return new ErrorHandler("User already exists", 400);
+      throw new ErrorHandler("Email already in use", 400);
     }
 
     const user = await User.create({
@@ -77,7 +77,6 @@ export async function createUserAndSendVerificationEmail(input: UserInput) {
       message: "Verification Email Sent",
     };
   } catch (error: any) {
-    logger.error(error);
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
@@ -92,7 +91,7 @@ export async function verifyUserEmail(token: string) {
       throw new ErrorHandler("Invalid or Expired Token", 404);
     }
 
-    const user = await User.findById(userToken.userId);
+    const user = await User.findById(userToken.userId); // Use findById instead of creating a new object
 
     if (!user) {
       throw new ErrorHandler("User not found", 404);
@@ -104,10 +103,11 @@ export async function verifyUserEmail(token: string) {
 
     user.isEmailVerified = true;
 
-    return await user.save();
-  } catch (error) {
-    logger.error(error);
-    throw new ErrorHandler("Failed to verify user email", 500);
+    await user.save();
+
+    return user;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 }
 
