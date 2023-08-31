@@ -18,9 +18,7 @@ export const isVerify = catchAsyncError(
     }
 
     try {
-      console.log(token);
       const decoded: any = jwt.verify(token, jwtSecret);
-      console.log(decoded);
 
       const user = await User.findById(decoded.id);
 
@@ -40,7 +38,6 @@ export const isSeller = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { seller_token } = req.cookies;
 
-    console.log(seller_token);
     if (!seller_token) {
       return next(new ErrorHandler("Please login to continue", 400));
     }

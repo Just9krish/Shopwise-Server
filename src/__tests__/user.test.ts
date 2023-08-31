@@ -5,6 +5,8 @@ import ErrorHandler from "../utils/errorHandler";
 import mongoose from "mongoose";
 import User, { UserDocument } from "../models/user.model";
 import jwt from "jsonwebtoken";
+import { NextFunction, Request, Response } from "express";
+import { logOutUserHandler } from "../controllers/user.controller";
 
 const userInput = {
   name: "John Doe",
@@ -105,21 +107,26 @@ describe("User Routes", () => {
 
       expect(loginUserServiceMock).toHaveBeenCalledWith(validUser);
     });
+
+    it("should return an error for invalid credentials", async () => {
+      const loginUserServiceMock = jest
+        .spyOn(UserService, "loginUserAndSetCookie")
+        .mockRejectedValueOnce(new ErrorHandler("Invalid Credentials", 400));
+
+      const { statusCode, body } = await supertest(app)
+        .post("/api/v2/users/login")
+        .send(validUser);
+
+      expect(statusCode).toBe(400);
+      expect(body.success).toEqual(false);
+      expect(body.message).toEqual("Invalid Credentials");
+
+      expect(loginUserServiceMock).toHaveBeenCalledWith(validUser);
+    });
   });
 
   describe("Get User Details", () => {
-    it("should get user details", async () => {
-      const getUserDetailsServiceMock = jest
-        .spyOn(UserService, "getUserDetailsById")
-        // @ts-ignore
-        .mockResolvedValueOnce({
-          name: "John Doe",
-          email: "rvamit2648@outlook.com",
-          isEmailVerified: true,
-          addresses: [],
-          _id: userId,
-        } as UserDocument);
-
+    it("should get user details for valid JWT token", async () => {
       const mockedUser = {
         _id: userId,
         name: "John Doe",
@@ -127,6 +134,11 @@ describe("User Routes", () => {
         isEmailVerified: true,
         addresses: [],
       };
+
+      const getUserDetailsServiceMock = jest
+        .spyOn(UserService, "getUserDetailsById")
+        // @ts-ignore
+        .mockResolvedValueOnce(mockedUser as UserDocument);
 
       (jwt.verify as jest.Mock).mockReturnValueOnce({ _id: userId });
 
@@ -144,5 +156,21 @@ describe("User Routes", () => {
 
       expect(getUserDetailsServiceMock).toHaveBeenCalledWith(userId);
     });
+
+    it("should return an error if JWT token is invalid", async () => {
+      (jwt.verify as jest.Mock).mockReturnValueOnce(() => {
+        throw new ErrorHandler("Unauthorized", 401);
+      });
+
+      const { statusCode, body } = await supertest(app)
+        .get("/api/v2/users/getuser")
+        .set("Cookie", [`token=${mockedToken}`]);
+
+      expect(statusCode).toBe(401);
+      expect(body.success).toEqual(false);
+      expect(body.message).toEqual("Unauthorized");
+    });
   });
+
+  // Log out user
 });

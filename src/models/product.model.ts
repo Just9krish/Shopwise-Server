@@ -1,11 +1,13 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { ShopDocument } from "./shop.model";
+import { number } from "zod";
 
 export interface ProductDocument extends Document {
   name: string;
   description: string;
   category: string;
   tags?: string;
+  rating?: number;
   price: number;
   discount_percentage?: number;
   discount_price?: number;
@@ -36,6 +38,7 @@ const productSchema = new Schema<ProductDocument>(
       type: Number,
       required: [true, "Please enter product price!"],
     },
+    rating: { type: Number },
     discount_percentage: Number,
     discount_price: Number,
     stock: {

@@ -1,8 +1,13 @@
 import ErrorHandler from "../utils/errorHandler";
 import path from "path";
 import logger from "../utils/logger";
-import { addProduct, getAllProducts } from "../services/product.service";
+import {
+  addProduct,
+  getAllProducts,
+  getProductById,
+} from "../services/product.service";
 import { Request, Response, NextFunction } from "express";
+import { GetProductInput } from "../schema/product.schema";
 
 // add product
 export const addProductHandler = async (
@@ -50,9 +55,26 @@ export const getAllProductsHandler = async (
   next: NextFunction
 ) => {
   try {
-    const products = await getAllProducts();
+    const result = await getAllProducts(req.query);
 
-    res.status(200).json({ success: true, products });
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
+
+export const getProductHandler = async (
+  req: Request<GetProductInput["params"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await getProductById(productId);
+
+    res.status(200).json({ success: true, product });
   } catch (error: any) {
     logger.error(error);
     return next(new ErrorHandler(error.message, error.statusCode || 500));

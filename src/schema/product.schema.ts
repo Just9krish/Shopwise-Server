@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { TypeOf, object, string } from "zod";
 
 export const addProductSchema = object({
   body: object({
@@ -7,3 +7,13 @@ export const addProductSchema = object({
     }),
   }),
 });
+
+export const getProductSchema = object({
+  params: object({
+    productId: string({
+      required_error: "productId is required.",
+    }),
+  }),
+});
+
+export type GetProductInput = TypeOf<typeof getProductSchema>;
