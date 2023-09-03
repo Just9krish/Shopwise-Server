@@ -13,6 +13,17 @@ const calculateTotalPrice = (cart: CartDocument) => {
   return totalPrice;
 };
 
+const calculateMrpPrice = (cart: CartDocument) => {
+  let mrpPrice = 0;
+
+  for (const item of cart.items) {
+    const productPrice = item.product.price;
+    mrpPrice += productPrice * item.quantity;
+  }
+
+  return mrpPrice;
+};
+
 export const addToCart = async (
   userId: string,
   productId: string,

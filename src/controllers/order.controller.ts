@@ -6,6 +6,7 @@ import User from "../models/user.model";
 import logger from "../utils/logger";
 import { createOrderForShop, getAllOrders } from "../services/order.service";
 import { calculateTotalAmount } from "../utils/calculateCartPrice";
+import Cart from "../models/cart.model";
 
 export const createOrderHandler = async (
   req: Request,
@@ -15,40 +16,24 @@ export const createOrderHandler = async (
   try {
     const userId = res.locals.user._id;
 
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return next(new ErrorHandler("User is not logged in", 400));
-    }
-
-    const { cartWithIDandQty, shippingAddress, paymentInfo, couponID } =
-      req.body;
+    const { shippingAddress, paymentInfo } = req.body;
 
     let { paidPrice } = req.body;
     let paidAt;
     let isPaid = true;
-    let calculatedPaidPrice = 0; // Initialize the calculatedPaidPrice
 
-    if (!paidPrice) {
-      calculatedPaidPrice = await calculateTotalAmount(
-        cartWithIDandQty,
-        couponID
-      ); // Calculate the cart price
-      paidPrice = calculatedPaidPrice;
-      isPaid = false;
-    } else {
+    if (paidPrice) {
       paidAt = new Date();
       isPaid = true;
-      calculatedPaidPrice = parseFloat(paidPrice); // Use the provided paidPrice
     }
 
-    if (!cartWithIDandQty || !shippingAddress || !paidPrice || !paymentInfo) {
-      return next(new ErrorHandler("Bad request", 400));
+    const cart = await Cart.findOne({ user: userId });
+
+    if (!cart) {
+      return next(new ErrorHandler("Cart is  not found", 404));
     }
 
-    const productIds = cartWithIDandQty.map(
-      (product: any) => product.productId
-    );
+    const productIds = cart.items.map((item: any) => item.product);
 
     const cartProducts = await Product.find({ _id: { $in: productIds } });
 
@@ -60,12 +45,13 @@ export const createOrderHandler = async (
         shopItemsMap.set(shopId, []);
       }
 
-      const foundItem = cartWithIDandQty.find(
-        (item: any) => item.productId === product._id.toString()
+      const foundItem = cart.items.find(
+        (item) => item.product._id.toString() === product._id.toString()
       );
+
       const transformed = {
         product: product._id.toString(),
-        quantity: foundItem ? foundItem.productQuantity : 0,
+        quantity: foundItem ? foundItem.quantity : 0,
       };
 
       shopItemsMap.get(shopId).push(transformed);
@@ -78,7 +64,7 @@ export const createOrderHandler = async (
         products,
         userId,
         shippingAddress,
-        calculatedPaidPrice,
+        cart.totalPrice,
         paymentInfo,
         shopId,
         paidAt
@@ -87,7 +73,9 @@ export const createOrderHandler = async (
       orders.push(populatedOrder);
     }
 
-    res.status(201).json({ orders, totalPrice: calculatedPaidPrice, isPaid });
+    await Cart.findOneAndUpdate({ user: userId }, { items: [], totalPrice: 0 });
+
+    res.status(201).json({ orders, totalPrice: cart.totalPrice, isPaid });
   } catch (error: any) {
     logger.error(error);
     next(new ErrorHandler(error.message, error.statusCode || 500));

@@ -34,3 +34,19 @@ export const verifyCoupon = async (couponCode: string, totalBill: number) => {
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 };
+
+interface Params {
+  couponCode: string;
+}
+
+export const applyCoupon = async ({ couponCode }: Params) => {
+  try {
+    const coupon = await Coupon.findOne({ name: couponCode });
+
+    if (!coupon) {
+      throw new ErrorHandler("Coupon code is not valid", 400);
+    }
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};

@@ -5,7 +5,7 @@ import {
   removeItemFromCartHandler,
   updateCartItemQuantityHandler,
   getUserCartHandler,
-} from "../controllers/cart.controller";
+} from "../../cart.controller";
 import validate from "../middleware/validateResource";
 import {
   addToCartSchema,

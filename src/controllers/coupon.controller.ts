@@ -34,3 +34,16 @@ export const verifyCoupons = async (
     return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
+
+export const appyCoupons = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { couponCode } = req.body;
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};

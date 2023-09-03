@@ -12,9 +12,12 @@ export const createPaymentIntentHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { cartWithIDandQty, couponID } = req.body;
+    const { userId } = req.body;
 
-    const paymentIntent = await createPaymentIntent(cartWithIDandQty, couponID);
+    console.log(userId);
+
+    const paymentIntent = await createPaymentIntent(userId);
+
     res
       .status(201)
       .json({ success: true, clientSecret: paymentIntent.client_secret });

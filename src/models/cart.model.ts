@@ -1,10 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { ProductDocument } from "./product.model";
 import { UserDocument } from "./user.model";
+import { CouponCodeDocument } from "./couponCode.model";
 
 export interface CartItem {
   product: ProductDocument["_id"];
   quantity: number;
+  coupon?: CouponCodeDocument["_id"];
 }
 
 export interface CartDocument extends Document {
@@ -26,6 +28,10 @@ const cartItemSchema = new Schema<CartItem>({
     required: true,
     default: 1,
     min: 1,
+  },
+  coupon: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "CouponCode",
   },
 });
 

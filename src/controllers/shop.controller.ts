@@ -145,9 +145,11 @@ export const deleteShopSingleProductHandler = async (
 
     const deletedProduct = await deleteShopSingleProduct(productId, shopId);
 
-    res
-      .status(201)
-      .json({ success: true, message: "Product deleted successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Product deleted successfully",
+      deletedProductId: deletedProduct?.id,
+    });
   } catch (error: any) {
     logger.error(error);
     return next(new ErrorHandler(error.message, error.statusCode || 500));

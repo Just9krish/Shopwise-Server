@@ -1,14 +1,17 @@
-import Cart from "../models/cart.model";
+import Cart from "./src/models/cart.model";
 import { NextFunction, Request, Response } from "express";
 import {
   addToCart,
   getUserCart,
   removeItemFromCart,
   updateCartItemQuantity,
-} from "../services/cart.service";
-import ErrorHandler from "../utils/errorHandler";
-import logger from "../utils/logger";
-import { AddToCartInput, RemoveItemFromCartInput } from "../schema/cart.schema";
+} from "./src/services/cart.service";
+import ErrorHandler from "./src/utils/errorHandler";
+import logger from "./src/utils/logger";
+import {
+  AddToCartInput,
+  RemoveItemFromCartInput,
+} from "./src/schema/cart.schema";
 
 // Add to cart product
 export const addToCartHandler = async (
