@@ -21,12 +21,14 @@ import {
   deleteUserAddress,
   forgotPasswordByUserEmail,
   getUserDetailsById,
+  getUserOrders,
   loginUserAndSetCookie,
   resetUserPassword,
   updateUserProfile,
   updateUserProfileImage,
   verifyUserEmail,
 } from "../services/user.service";
+import Order from "../models/order.model";
 
 // const CLIENT_DOMAIN =
 //   config.get<string>("nodeEnv") === "PRODUCTION"
@@ -303,18 +305,20 @@ export const changeUserPasswordHandler = async (
   }
 };
 
-// // get all user orders
-// exports.getAllOrdersOfUser = async (req, res, next) => {
-//   try {
-//     const userID = req.user.id;
+// get all user orders
+export const getUserOrdersHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userID = res.locals.user._id;
 
-//     const userOrders = await Order.find({ user: userID }).sort({
-//       createdAt: -1,
-//     });
+    const userOrders = await getUserOrders(userID);
 
-//     res.status(200).json({ success: true, orders: userOrders });
-//   } catch (error) {
-//     console.log(error);
-//     next(new ErrorHandler(error.message, 500));
-//   }
-// };
+    res.status(200).json({ success: true, orders: userOrders });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};

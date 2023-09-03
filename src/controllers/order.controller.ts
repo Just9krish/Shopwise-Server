@@ -1,11 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-
 import ErrorHandler from "../utils/errorHandler";
 import Product from "../models/product.model";
-import User from "../models/user.model";
 import logger from "../utils/logger";
 import { createOrderForShop, getAllOrders } from "../services/order.service";
-import { calculateTotalAmount } from "../utils/calculateCartPrice";
 import Cart from "../models/cart.model";
 
 export const createOrderHandler = async (

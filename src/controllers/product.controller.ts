@@ -80,3 +80,6 @@ export const getProductHandler = async (
     return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
+
+// TODO : Create the best deal product listing where which product having greater percentage of discount
+// TODO : Create the fatured products listing where which product having which have greater sold out

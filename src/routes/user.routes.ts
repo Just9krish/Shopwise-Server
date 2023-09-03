@@ -25,6 +25,7 @@ import {
   addUserAdressHandler,
   deleteAddressHandler,
   changeUserPasswordHandler,
+  getUserOrdersHandler,
 } from "../controllers/user.controller";
 import upload from "../upload";
 import catchAsyncError from "../middleware/catchAsyncError";
@@ -103,7 +104,7 @@ router.post(
   catchAsyncError(changeUserPasswordHandler)
 );
 
-// // get all user order
-// router.get("/:userId/orders", isVerify, catchAsyncError(getAllOrdersOfUser));
+// get all user order
+router.get("/:userId/orders", isVerify, getUserOrdersHandler);
 
 export default router;

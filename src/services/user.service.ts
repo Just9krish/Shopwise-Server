@@ -12,6 +12,7 @@ import {
   saveVerificationToken,
 } from "./userToken.service";
 import path from "path";
+import Order from "../models/order.model";
 
 const CLIENT_DOMAIN =
   process.env.NODE_ENV === "PRODUCTION"
@@ -370,6 +371,16 @@ export const changeUserPassword = async (
 
     user.password = newPassword;
     await user.save();
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
+
+export const getUserOrders = async (userId: string) => {
+  try {
+    return await Order.find({ user: userId }).sort({
+      createdAt: -1,
+    });
   } catch (error: any) {
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }

@@ -311,7 +311,9 @@ export const getShopAllOrdersHandler = async (
   try {
     const shopId = res.locals.shop._id;
 
-    const orders = await Order.find({ shop: shopId }).populate("cart.product");
+    const orders = await Order.find({ shop: shopId })
+      .populate("cart.product")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, orders });
   } catch (error: any) {
