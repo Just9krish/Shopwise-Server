@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { ShopDocument } from "./shop.model";
-import { number } from "zod";
 
 export interface ProductDocument extends Document {
   name: string;

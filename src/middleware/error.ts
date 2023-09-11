@@ -7,8 +7,6 @@ const errorMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(err);
-
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal server error";
 

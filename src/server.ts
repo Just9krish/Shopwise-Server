@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 
 // handle uncaught exception
 process.on("uncaughtException", (err) => {
-  console.log("Error: " + err.message);
-  console.log("Shutting the server for uncaught exception");
+  logger.error("Error: " + err.message);
+  logger.info("Shutting the server for uncaught exception");
 });
 
 if (process.env.NODE_ENV !== "PRODUCTION") {

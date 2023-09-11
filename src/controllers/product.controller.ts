@@ -4,6 +4,8 @@ import logger from "../utils/logger";
 import {
   addProduct,
   getAllProducts,
+  getBestDealProducts,
+  getFeaturedProducts,
   getProductById,
 } from "../services/product.service";
 import { Request, Response, NextFunction } from "express";
@@ -82,4 +84,32 @@ export const getProductHandler = async (
 };
 
 // TODO : Create the best deal product listing where which product having greater percentage of discount
+export const getBestDealProductsHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log("Request URL:", req.originalUrl);
+    const bestDealProducts = await getBestDealProducts();
+    res.status(200).json({ success: true, bestDealProducts });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
+
 // TODO : Create the fatured products listing where which product having which have greater sold out
+export const getFeaturedProductsHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const featuredProducts = await getFeaturedProducts();
+    res.status(200).json({ success: true, featuredProducts });
+  } catch (error: any) {
+    logger.error(error);
+    return next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};

@@ -98,3 +98,27 @@ export const getProductById = async (productId: string) => {
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 };
+
+export const getBestDealProducts = async () => {
+  try {
+    const bestDealProducts = await Product.find({})
+      .sort({ discount_percentage: -1 })
+      .limit(10);
+
+    return bestDealProducts;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};
+
+export const getFeaturedProducts = async () => {
+  try {
+    const featuredProducts = await Product.find()
+      .sort({ sold_out: -1 })
+      .limit(10);
+
+    return featuredProducts;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};

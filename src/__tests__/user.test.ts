@@ -5,8 +5,6 @@ import ErrorHandler from "../utils/errorHandler";
 import mongoose from "mongoose";
 import User, { UserDocument } from "../models/user.model";
 import jwt from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
-import { logOutUserHandler } from "../controllers/user.controller";
 
 const userInput = {
   name: "John Doe",
