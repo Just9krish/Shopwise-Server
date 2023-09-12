@@ -39,3 +39,27 @@ export const getAllOrders = async (): Promise<OrderDocument[]> => {
     throw new ErrorHandler(error.message, error.statusCode || 500);
   }
 };
+
+export const getOrderById = async ({
+  orderId,
+  userId,
+}: {
+  orderId: string;
+  userId: string;
+}): Promise<OrderDocument | null> => {
+  try {
+    const order = await Order.findById(orderId).populate("cart.product").exec();
+
+    if (!order) {
+      return null;
+    }
+
+    if (order.user.toString() !== userId.toString()) {
+      throw new ErrorHandler("Unauthorized", 401);
+    }
+
+    return order;
+  } catch (error: any) {
+    throw new ErrorHandler(error.message, error.statusCode || 500);
+  }
+};

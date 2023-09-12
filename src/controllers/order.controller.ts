@@ -2,8 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import ErrorHandler from "../utils/errorHandler";
 import Product from "../models/product.model";
 import logger from "../utils/logger";
-import { createOrderForShop, getAllOrders } from "../services/order.service";
+import {
+  createOrderForShop,
+  getAllOrders,
+  getOrderById,
+} from "../services/order.service";
 import Cart from "../models/cart.model";
+import { GetOrderByIdInput } from "../schema/order.schema";
 
 export const createOrderHandler = async (
   req: Request,
@@ -88,6 +93,24 @@ export const getOrdersHandler = async (
     const orders = await getAllOrders();
 
     res.status(200).json(orders);
+  } catch (error: any) {
+    logger.error(error);
+    next(new ErrorHandler(error.message, error.statusCode || 500));
+  }
+};
+
+export const getOrderByIdHandler = async (
+  req: Request<GetOrderByIdInput["params"]>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { orderId } = req.params;
+    const userId = res.locals.user._id;
+
+    const order = await getOrderById({ userId, orderId });
+
+    res.status(200).json({ success: true, order });
   } catch (error: any) {
     logger.error(error);
     next(new ErrorHandler(error.message, error.statusCode || 500));
