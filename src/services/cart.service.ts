@@ -6,7 +6,7 @@ const calculateTotalPrice = (cart: CartDocument) => {
   let totalPrice = 0;
 
   for (const item of cart.items) {
-    const productPrice = item.product.discount_price || item.product.price;
+    const productPrice = item.product.discountPrice || item.product.price;
     totalPrice += productPrice * item.quantity;
   }
 

@@ -199,8 +199,8 @@ interface CreateEventInput {
   startDate: Date;
   endDate: Date;
   price: number;
-  discount_percentage?: number;
-  discount_price?: number;
+  discountPercentage?: number;
+  discountPrice?: number;
   stock: number;
   tags?: string;
 }

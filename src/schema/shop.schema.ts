@@ -104,8 +104,8 @@ export type DeleteShopSingleProductInput = TypeOf<
 //     price: number({
 //       required_error: "Price is required.",
 //     }),
-//     discount_percentage: number(),
-//     discount_price: number(),
+//     discountPercentage: number(),
+//     discountPrice: number(),
 //     stock: number({
 //       required_error: "Stock is required.",
 //     }),
@@ -155,8 +155,8 @@ const eventDataSchema = object({
   price: number({
     required_error: "Price is required.",
   }),
-  discount_percentage: number(),
-  discount_price: number(),
+  discountPercentage: number(),
+  discountPrice: number(),
   stock: number({
     required_error: "Stock is required.",
   }),

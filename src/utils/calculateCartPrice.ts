@@ -8,7 +8,7 @@ export interface CartWithIDandQty {
 }
 
 const getCartItemPrice = (item: ProductDocument): number => {
-  return item.discount_price || item.price;
+  return item.discountPrice || item.price;
 };
 
 const calculateCartPriceWithoutShipping = (

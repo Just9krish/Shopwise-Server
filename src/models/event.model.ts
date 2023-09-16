@@ -10,8 +10,8 @@ export interface EventDocument extends Document {
   status: string;
   tags: string;
   price: number;
-  discount_percentage: number;
-  discount_price: number;
+  discountPercentage: number;
+  discountPrice: number;
   stock: number;
   images: string[];
   shop: ShopDocument["_id"];
@@ -51,11 +51,11 @@ const eventSchema = new Schema<EventDocument>(
       type: Number,
       required: [true, "Please enter event product price!"],
     },
-    discount_percentage: {
+    discountPercentage: {
       type: Number,
       require: true,
     },
-    discount_price: { type: Number, required: true },
+    discountPrice: { type: Number, required: true },
     stock: {
       type: Number,
       required: [true, "Please enter event the stock of product"],

@@ -8,8 +8,8 @@ interface ProductInput {
   category: string;
   tags?: string;
   price: number;
-  discount_percentage?: number;
-  discount_price?: number;
+  discountPercentage?: number;
+  discountPrice?: number;
   stock: number;
   sold_out: number;
 }
@@ -102,7 +102,7 @@ export const getProductById = async (productId: string) => {
 export const getBestDealProducts = async () => {
   try {
     const bestDealProducts = await Product.find({})
-      .sort({ discount_percentage: -1 })
+      .sort({ discountPercentage: -1 })
       .limit(10);
 
     return bestDealProducts;

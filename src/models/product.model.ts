@@ -8,8 +8,8 @@ export interface ProductDocument extends Document {
   tags?: string;
   rating?: number;
   price: number;
-  discount_percentage?: number;
-  discount_price?: number;
+  discountPercentage?: number;
+  discountPrice?: number;
   stock: number;
   images: any[];
   shop: ShopDocument["_id"];
@@ -38,8 +38,8 @@ const productSchema = new Schema<ProductDocument>(
       required: [true, "Please enter product price!"],
     },
     rating: { type: Number },
-    discount_percentage: Number,
-    discount_price: Number,
+    discountPercentage: Number,
+    discountPrice: Number,
     stock: {
       type: Number,
       required: [true, "Please enter the stock of product"],
