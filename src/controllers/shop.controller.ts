@@ -1,4 +1,3 @@
-import Shop from "../models/shop.model";
 import Event from "../models/event.model";
 import Cupon from "../models/couponCode.model";
 import Product from "../models/product.model";

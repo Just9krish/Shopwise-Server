@@ -25,8 +25,6 @@ export const addProductHandler = async (
       return next(new ErrorHandler("Please upload an image", 400));
     }
 
-    logger.info(req.body);
-
     const imageUrls = files.map((file, idx) => {
       const filename = file.filename;
       const extension = path.extname(filename);
@@ -90,7 +88,6 @@ export const getBestDealProductsHandler = async (
   next: NextFunction
 ) => {
   try {
-    console.log("Request URL:", req.originalUrl);
     const bestDealProducts = await getBestDealProducts();
     res.status(200).json({ success: true, bestDealProducts });
   } catch (error: any) {
