@@ -28,7 +28,6 @@ import {
   getUserOrdersHandler,
 } from "../controllers/user.controller";
 import upload from "../upload";
-import catchAsyncError from "../middleware/catchAsyncError";
 import { isVerify } from "../middleware/auth";
 
 // register user
@@ -38,21 +37,21 @@ router.post("/signup", validate(createUserSchema), createUserHandler);
 router.post(
   "/activation",
   validate(verifyUserSchema),
-  catchAsyncError(userEmailVerificationHandler)
+  userEmailVerificationHandler
 );
 
 // login user
 router.post(
   "/login",
   validate(loginUserSchema),
-  catchAsyncError(loginUserHandler)
+  loginUserHandler
 );
 
 // forgot user password
 router.post(
   "/forgotpassword",
   validate(forgotPasswordSchema),
-  catchAsyncError(forgotUserPasswordHandler)
+  forgotUserPasswordHandler
 );
 
 // reset user password
@@ -63,17 +62,17 @@ router.post(
 );
 
 // logout user
-router.get("/logout", catchAsyncError(logOutUserHandler));
+router.get("/logout", logOutUserHandler);
 
 // retrive user information
-router.get("/getuser", isVerify, catchAsyncError(getUserHandler));
+router.get("/getuser", isVerify, getUserHandler);
 
 // update user
 router.put(
   "/profile",
   isVerify,
   validate(updateUserProfileSchema),
-  catchAsyncError(updateUserProfileHandler)
+  updateUserProfileHandler
 );
 
 // update profile picture
@@ -82,7 +81,7 @@ router.put(
   isVerify,
   upload.single("file"),
   validate(updateUserProfileImageSchema),
-  catchAsyncError(updateUserProfilePictureHandler)
+  updateUserProfilePictureHandler
 );
 
 // add address of user
@@ -90,7 +89,7 @@ router.post(
   "/address",
   isVerify,
   validate(addUserAdressSchema),
-  catchAsyncError(addUserAdressHandler)
+  addUserAdressHandler
 );
 
 // delete user address
@@ -101,7 +100,7 @@ router.post(
   "/password-change",
   isVerify,
   validate(changeUserPasswordSchema),
-  catchAsyncError(changeUserPasswordHandler)
+  changeUserPasswordHandler
 );
 
 // get all user order

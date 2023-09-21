@@ -314,6 +314,10 @@ export const getUserOrdersHandler = async (
   try {
     const userID = res.locals.user._id;
 
+    if (req.body.userId !== userID) {
+      throw new ErrorHandler("Unauthorized access", 403);
+    }
+
     const userOrders = await getUserOrders(userID);
 
     res.status(200).json({ success: true, orders: userOrders });

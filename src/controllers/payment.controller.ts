@@ -12,10 +12,7 @@ export const createPaymentIntentHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { userId } = req.body;
-
-    console.log(userId);
-
+    const userId = res.locals.user._id
     const paymentIntent = await createPaymentIntent(userId);
 
     res
