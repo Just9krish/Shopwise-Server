@@ -18,6 +18,7 @@ export const addProductHandler = async (
   next: NextFunction
 ) => {
   try {
+    console.log("4")
     const shopId = res.locals.shop._id;
     const files = req.files as Express.Multer.File[];
 
@@ -41,9 +42,10 @@ export const addProductHandler = async (
 
     const product = await addProduct(productData, imageUrls, shopId);
 
-    res.status(201).json({ success: true, product });
+    res.status(201).json({ success: true, product, message: "Product added successfully" });
   } catch (error: any) {
     logger.error(error);
+    console.log(error);
     return next(new ErrorHandler(error.message, error.statusCode || 500));
   }
 };
@@ -55,6 +57,7 @@ export const getAllProductsHandler = async (
   next: NextFunction
 ) => {
   try {
+    console.log("1")
     const result = await getAllProducts(req.query);
 
     res.status(200).json(result);
@@ -70,6 +73,7 @@ export const getProductHandler = async (
   next: NextFunction
 ) => {
   try {
+    console.log("5")
     const { productId } = req.params;
 
     const product = await getProductById(productId);
@@ -88,6 +92,7 @@ export const getBestDealProductsHandler = async (
   next: NextFunction
 ) => {
   try {
+    console.log("2")
     const bestDealProducts = await getBestDealProducts();
     res.status(200).json({ success: true, bestDealProducts });
   } catch (error: any) {
@@ -103,6 +108,7 @@ export const getFeaturedProductsHandler = async (
   next: NextFunction
 ) => {
   try {
+    console.log("3")
     const featuredProducts = await getFeaturedProducts();
     res.status(200).json({ success: true, featuredProducts });
   } catch (error: any) {

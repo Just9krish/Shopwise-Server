@@ -174,7 +174,8 @@ export const deleteShopSingleProduct = async (
     }
 
     const imageDeletionPromises = product.images.map(async (image) => {
-      const filepath = path.resolve(`uploads/${image.filename}`);
+      const filepath = path.resolve(`uploads/${image.name}`);
+      console.log(filepath)
       try {
         await fs.promises.unlink(filepath);
       } catch (err: any) {
@@ -228,9 +229,18 @@ export const createShopEvent = async (
   }
 };
 
-export const deleteShopSingleEvent = async (eventId: string) => {
+export const deleteShopSingleEvent = async (eventId: string, shopId: string) => {
   try {
+
     const eventData = await Event.findById(eventId);
+
+    if(!eventData) {
+      throw new ErrorHandler("Event does not exist", 404)
+    }
+
+    if(eventData.shop.toString() !== shopId){
+      throw new ErrorHandler("Event does not belong to your shop", 403)
+    }
 
     // Delete event images
     if (eventData) {

@@ -5,6 +5,7 @@ export interface ProductDocument extends Document {
   name: string;
   description: string;
   category: string;
+  brand: string;
   tags?: string;
   rating?: number;
   price: number;
@@ -13,7 +14,7 @@ export interface ProductDocument extends Document {
   stock: number;
   images: any[];
   shop: ShopDocument["_id"];
-  sold_out: number;
+  soldOut: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,10 @@ const productSchema = new Schema<ProductDocument>(
     category: {
       type: String,
       required: [true, "Please enter product category!"],
+    },
+    brand: {
+      type: String,
+      required: [true, "Please enter product brand!"],
     },
     tags: String,
     price: {
@@ -50,7 +55,7 @@ const productSchema = new Schema<ProductDocument>(
       ref: "Shop",
       required: true,
     },
-    sold_out: {
+    soldOut: {
       type: Number,
       default: 0,
     },

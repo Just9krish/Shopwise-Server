@@ -13,9 +13,6 @@ import { getProductSchema } from "../schema/product.schema";
 
 const router = express.Router();
 
-// Reorder the route definitions
-// Place the dynamic route at the end
-
 // get all products
 router.get("/", getAllProductsHandler);
 
@@ -26,7 +23,7 @@ router.get("/best-deals", getBestDealProductsHandler);
 router.get("/featured", getFeaturedProductsHandler);
 
 // add product
-router.post("/", isSeller, upload.array("images"), addProductHandler);
+router.post("/addProduct", isSeller, upload.array("images"), addProductHandler);
 
 // get single product (dynamic route)
 router.get("/:productId", validate(getProductSchema), getProductHandler);

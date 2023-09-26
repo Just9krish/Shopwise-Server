@@ -1,15 +1,12 @@
 import Event from "../models/event.model";
 import Cupon from "../models/couponCode.model";
-import Product from "../models/product.model";
 import Order from "../models/order.model";
 import logger from "../utils/logger";
-import fs from "fs";
 import ErrorHandler from "../utils/errorHandler";
 import sendShopToken from "../utils/shopToken";
 import { NextFunction, Request, Response } from "express";
 import {
   CreateCouponCodeInput,
-  CreateEventInput,
   CreateShopInput,
   DeleteCouponInput,
   DeleteEventOfShopInput,
@@ -157,21 +154,21 @@ export const deleteShopSingleProductHandler = async (
 
 // create shop event
 export const createEventHandler = async (
-  req: Request<{}, {}, CreateEventInput["body"], CreateEventInput["files"]>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const shopId = res.locals.shop._id;
-    const eventData = req.body.data;
-    const files = req.files;
+    const eventData = req.body;
+    const files = req.files!;
 
     console.log(eventData);
     console.log(files);
 
-    // const event = createShopEvent(shopId, eventData, files);
+    const event = createShopEvent(shopId, eventData, files);
 
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, event, message: "Event created successfully" });
   } catch (error: any) {
     logger.error(error);
     return next(new ErrorHandler(error.message, error.statusCode || 500));
@@ -204,8 +201,9 @@ export const deleteShopSingleEventHandler = async (
 ) => {
   try {
     const { eventId } = req.params;
+    const shopId = res.locals.shop._id;
 
-    const result = await deleteShopSingleEvent(eventId);
+    const result = await deleteShopSingleEvent(eventId, shopId);
 
     res
       .status(201)

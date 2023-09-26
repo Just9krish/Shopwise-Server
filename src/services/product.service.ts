@@ -6,16 +6,18 @@ interface ProductInput {
   name: string;
   description: string;
   category: string;
+  brand: string;
   tags?: string;
   price: number;
   discountPercentage?: number;
   discountPrice?: number;
   stock: number;
-  sold_out: number;
+  soldOut: number;
 }
 
 interface QueryParameters {
   category?: string;
+  brand?: string;
   _sort?: string;
   _order?: string;
   _page?: string;
@@ -38,7 +40,7 @@ export const addProduct = async (
     const shop = await Shop.findById(shopId);
 
     if (!shop) {
-      throw new ErrorHandler("Invalid Seller id", 400);
+      throw new ErrorHandler("Invalid shop id", 400);
     }
 
     const rating = generateRandomNumber();
@@ -64,10 +66,14 @@ export const getAllProducts = async (queryParameters: QueryParameters) => {
       condition.category = { $in: queryParameters.category.split(",") };
     }
 
+    if (queryParameters.brand) {
+      condition.category = { $in: queryParameters.brand.split(",") };
+    }
+
     let productQuery: any = Product.find(condition);
 
     if (queryParameters._sort && queryParameters._order) {
-      const sortQuery: { [key: string]: string } = {}; // Specify key-value types
+      const sortQuery: { [key: string]: string; } = {}; // Specify key-value types
       sortQuery[queryParameters._sort] = queryParameters._order;
       productQuery = productQuery.sort(sortQuery);
     }
