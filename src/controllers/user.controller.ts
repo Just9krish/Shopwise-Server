@@ -314,7 +314,7 @@ export const getUserOrdersHandler = async (
   try {
     const userID = res.locals.user._id;
 
-    if (req.body.userId !== userID) {
+    if (req.params.userId !== userID.toString()) {
       throw new ErrorHandler("Unauthorized access", 403);
     }
 

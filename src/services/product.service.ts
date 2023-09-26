@@ -67,8 +67,10 @@ export const getAllProducts = async (queryParameters: QueryParameters) => {
     }
 
     if (queryParameters.brand) {
-      condition.category = { $in: queryParameters.brand.split(",") };
+      condition.brand = { $in: queryParameters.brand.split(",") };
     }
+
+    console.log(condition)
 
     let productQuery: any = Product.find(condition);
 
@@ -109,7 +111,7 @@ export const getBestDealProducts = async () => {
   try {
     const bestDealProducts = await Product.find({})
       .sort({ discountPercentage: -1 })
-      .limit(10);
+      .limit(5);
 
     return bestDealProducts;
   } catch (error: any) {
@@ -120,8 +122,8 @@ export const getBestDealProducts = async () => {
 export const getFeaturedProducts = async () => {
   try {
     const featuredProducts = await Product.find()
-      .sort({ sold_out: -1 })
-      .limit(10);
+      .sort({ soldOut: -1 })
+      .limit(5);
 
     return featuredProducts;
   } catch (error: any) {

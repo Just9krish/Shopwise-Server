@@ -3,7 +3,6 @@ import hbs from "nodemailer-express-handlebars";
 import path from "path";
 import logger from "../utils/logger";
 import ErrorHandler from "../utils/errorHandler";
-import { NextFunction } from "connect";
 
 interface MailOptions {
   from: string;

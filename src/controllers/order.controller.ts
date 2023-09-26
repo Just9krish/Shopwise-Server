@@ -18,11 +18,13 @@ export const createOrderHandler = async (
   try {
     const userId = res.locals.user._id;
 
+    console.log(req.body)
+
     const { shippingAddress, paymentInfo } = req.body;
 
     let { paidPrice } = req.body;
     let paidAt;
-    let isPaid = true;
+    let isPaid = false;
 
     if (paidPrice) {
       paidAt = new Date();
@@ -32,7 +34,7 @@ export const createOrderHandler = async (
     const cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-      return next(new ErrorHandler("Cart is  not found", 404));
+      return next(new ErrorHandler("Cart is not found", 404));
     }
 
     const productIds = cart.items.map((item: any) => item.product);
@@ -79,6 +81,7 @@ export const createOrderHandler = async (
 
     res.status(201).json({ orders, totalPrice: cart.totalPrice, isPaid });
   } catch (error: any) {
+    console.log(error);
     logger.error(error);
     next(new ErrorHandler(error.message, error.statusCode || 500));
   }
